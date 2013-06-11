@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <stdint.h>
 #include "symmetry3.h"
 
 /*
@@ -30,7 +31,7 @@ IMPORTANT STANDARDS:
 
 */
 
-typedef struct __attribute__((__packed__)) {
+typedef struct {
 #if __BIG_ENDIAN
     unsigned short edgeIndex : 8; // index of the edge in the dedge
     unsigned short symmetry : 4; // the symmetry of the edge
@@ -40,19 +41,9 @@ typedef struct __attribute__((__packed__)) {
     unsigned short symmetry : 4; // the symmetry of the edge
     unsigned short edgeIndex : 8; // index of the edge in the dedge
 #endif
-} CuboidEdge;
+} __attribute__((__packed__)) CuboidEdge;
 
-typedef struct __attribute__((__packed__)) {
-#if __BIG_ENDIAN
-    unsigned short symmetry : 4;
-    unsigned short dedgeIndex : 4;
-#else
-    unsigned short dedgeIndex : 4;
-    unsigned short symmetry : 4;
-#endif
-} CuboidBasicEdge;
-
-typedef struct __attribute__((__packed__)) {
+typedef struct {
 #if __BIG_ENDIAN
     unsigned int symmetry : 4;
     unsigned int index : 4;
@@ -60,21 +51,21 @@ typedef struct __attribute__((__packed__)) {
     unsigned int index : 4;
     unsigned int symmetry : 4;
 #endif
-} CuboidCorner;
+} __attribute__((__packed__)) CuboidCorner;
 
-typedef struct __attribute__((__packed__)) {
+typedef struct {
     uint8_t side; // the side 1-6
     int16_t index; // index in the center;
     // the index field may be -1 to indicate that an insufficient
     // amount of information was available to figure it out
-} CuboidCenter;
+} __attribute__((__packed__)) CuboidCenter;
 
-typedef struct __attribute__((__packed__)) {
+typedef struct {
     uint8_t x;
     uint8_t y;
     uint8_t z;
     uint8_t padding;
-} CuboidDimensions;
+} __attribute__((__packed__)) CuboidDimensions;
 
 // The cuboid structure is a representation of the physical structure
 // of an XxYxZ cuboid. The pointers in the structure represent physical slots.
@@ -91,13 +82,11 @@ typedef struct {
     
     // the edges are encoded from dedge 0 to 11, and for each one
     // the edges are encoded in order.
-    // If there is only one or zero edge per dedge then
-    // the edge index byte is omitted from each data structure for
-    // storage convenience, and a CuboidBasicEdge is used
-    void * edges; // or NULL
+    CuboidEdge * edges; // or NULL
     
     // this ordering is straightforward if you see the standard above
     CuboidCorner * corners;
+    
     CuboidDimensions dimensions;
 } Cuboid;
 
@@ -107,15 +96,13 @@ Cuboid * cuboid_create(CuboidDimensions dimensions);
 void cuboid_free(Cuboid * cuboid);
 
 void cuboid_multiply(Cuboid * out, const Cuboid * left, const Cuboid * right);
-Cuboid * cuboid_copy(Cuboid * cuboid);
+Cuboid * cuboid_copy(const Cuboid * cuboid);
 
-void * cuboid_edge_address(Cuboid * cuboid, int dedge, int edge);
-void * cuboid_center_address(Cuboid * center, int face, int index);
+uint16_t cuboid_edge_index(const Cuboid * cuboid, int dedge, int edge);
+uint16_t cuboid_center_index(const Cuboid * cuboid, int face, int index);
 
-uint8_t cuboid_count_edges_for_dedge(Cuboid * cuboid, int dedge);
-uint16_t cuboid_count_edges(Cuboid * cuboid);
-size_t cuboid_edge_data_size(Cuboid * cuboid);
-int cuboid_uses_extended_edges(Cuboid * cuboid);
+uint8_t cuboid_count_edges_for_dedge(const Cuboid * cuboid, int dedge);
+uint16_t cuboid_count_edges(const Cuboid * cuboid);
 
-uint16_t cuboid_count_centers_for_face(Cuboid * cuboid, int number);
-uint16_t cuboid_count_centers(Cuboid * cuboid);
+uint16_t cuboid_count_centers_for_face(const Cuboid * cuboid, int number);
+uint16_t cuboid_count_centers(const Cuboid * cuboid);

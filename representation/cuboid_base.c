@@ -1,14 +1,14 @@
 #include "cuboid_base.h"
 
 static void _initialize_cuboid_edges(Cuboid * cuboid);
-static void _initialize_add_edges(Cuboid * cuboid, int offset, int dedge, int extended);
+static void _initialize_add_edges(Cuboid * cuboid, int offset, int dedge);
 
 static void _initialize_cuboid_corners(Cuboid * cuboid);
 static void _initialize_cuboid_centers(Cuboid * cuboid);
 
 static void _multiply_corners(Cuboid * out, const Cuboid * left, const Cuboid * right);
 static void _multiply_edges(Cuboid * out, const Cuboid * left, const Cuboid * right);
-static void _multiply_basic_edges(Cuboid * out, const Cuboid * left, const Cuboid * right);
+static void _multiply_centers(Cuboid * out, const Cuboid * left, const Cuboid * right);
 
 int cuboid_dimensions_equal(CuboidDimensions d1, CuboidDimensions d2) {
     if (d1.x != d2.x) return 0;
@@ -49,36 +49,63 @@ void cuboid_free(Cuboid * cuboid) {
 }
 
 void cuboid_multiply(Cuboid * out, const Cuboid * left, const Cuboid * right) {
-    assert(cuboid_dimensions_equal(left.dimensions, right.dimensions));
+    assert(cuboid_dimensions_equal(left->dimensions, right->dimensions));
+    assert(cuboid_dimensions_equal(left->dimensions, out->dimensions));
     _multiply_corners(out, left, right);
+    if (cuboid_count_edges(left) > 0) {
+        _multiply_edges(out, left, right);
+    }
+    if (cuboid_count_centers(left) > 0) {
+        _multiply_centers(out, left, right);
+    }
 }
 
-Cuboid * cuboid_copy(Cuboid * cuboid) {
+Cuboid * cuboid_copy(const Cuboid * cuboid) {
+    Cuboid * copy = (Cuboid *)malloc(sizeof(Cuboid));
+    bzero(copy, sizeof(Cuboid));
+    copy->dimensions = cuboid->dimensions;
+    int centerCount = cuboid_count_centers(copy);
+    int edgeCount = cuboid_count_edges(copy);
     
+    copy->corners = (CuboidCorner *)malloc(sizeof(CuboidCorner) * 8);
+    memcpy(copy->corners, cuboid->corners,
+           sizeof(CuboidCorner) * 8);
+          
+    if (edgeCount > 0) {
+        copy->edges = (CuboidEdge *)malloc(sizeof(CuboidEdge) * edgeCount);
+        memcpy(copy->edges, cuboid->edges,
+               sizeof(CuboidEdge) * edgeCount);
+    }
+    
+    if (centerCount > 0) {
+        copy->centers = (CuboidCenter *)malloc(sizeof(CuboidCenter) * centerCount);
+        memcpy(copy->centers, cuboid->centers,
+               sizeof(CuboidCenter) * centerCount);
+    }
+    
+    return copy;
 }
 
 /**************
  * Addressing *
  **************/
 
-void * cuboid_edge_address(Cuboid * cuboid, int dedge, int edge) {
+uint16_t cuboid_edge_index(const Cuboid * cuboid, int dedge, int edge) {
     int absEdgeIndex = 0, i;
     for (i = 0; i < dedge; i++) {
         absEdgeIndex += cuboid_count_edges_for_dedge(cuboid, i);
     }
     absEdgeIndex += edge;
-    int edgeSize = cuboid_edge_data_size(cuboid);
-    return &cuboid->edges[edgeSize * absEdgeIndex];
+    return absEdgeIndex;
 }
 
-void * cuboid_center_address(Cuboid * center, int face, int index) {
+uint16_t cuboid_center_index(const Cuboid * cuboid, int face, int index) {
     int absCenterIndex = 0, i;
     for (i = 1; i < face; i++) {
         absCenterIndex += cuboid_count_centers_for_face(cuboid, i);
     }
     absCenterIndex += index;
-    int centerSize = sizeof(CuboidCenter);
-    return &cuboid->centers[centerSize * absCenterIndex];
+    return absCenterIndex;
 }
 
 /***************************************
@@ -87,7 +114,7 @@ void * cuboid_center_address(Cuboid * center, int face, int index) {
 
 // edges
 
-uint8_t cuboid_count_edges_for_dedge(Cuboid * cuboid, int dedge) {
+uint8_t cuboid_count_edges_for_dedge(const Cuboid * cuboid, int dedge) {
     // 0 = x, 1 = y, 2 = z
     const int dedgeAxes[] = {0, 1, 0, 1, 2, 2, 0, 1, 0, 1, 2, 2};
     int counts[] = {cuboid->dimensions.x - 2, cuboid->dimensions.y - 2,
@@ -95,32 +122,14 @@ uint8_t cuboid_count_edges_for_dedge(Cuboid * cuboid, int dedge) {
     return counts[dedgeAxes[dedge]];
 }
 
-uint16_t cuboid_count_edges(Cuboid * cuboid) {
-    dim = cuboid->dimensions;
-    return (dim.x - 2) * 4 + (dim.y - 2) * 4 + (dim.z - 2) * 4;
-}
-
-size_t cuboid_edge_data_size(Cuboid * cuboid) {
-    int extended = cuboid_uses_extended_edges(cuboid);
-    if (extended) {
-        return sizeof(CuboidEdge);
-    } else {
-        return sizeof(CuboidBasicEdge);
-    }
-}
-
-int cuboid_uses_extended_edges(Cuboid * cuboid) {
-    int extendDedges = 0;
+uint16_t cuboid_count_edges(const Cuboid * cuboid) {
     CuboidDimensions dim = cuboid->dimensions;
-    if (dim.x > 3 || dim.y > 3 || dim.z > 3) {
-        extendDedges = 1;
-    }
-    return extendDedges;
+    return (dim.x - 2) * 4 + (dim.y - 2) * 4 + (dim.z - 2) * 4;
 }
 
 // centers
 
-uint16_t cuboid_count_centers_for_face(Cuboid * cuboid, int number) {
+uint16_t cuboid_count_centers_for_face(const Cuboid * cuboid, int number) {
     uint16_t xdim = cuboid->dimensions.x - 2;
     uint16_t ydim = cuboid->dimensions.y - 2;
     uint16_t zdim = cuboid->dimensions.z - 2;
@@ -134,7 +143,7 @@ uint16_t cuboid_count_centers_for_face(Cuboid * cuboid, int number) {
     return ydim * zdim;
 }
 
-uint16_t cuboid_count_centers(Cuboid * cuboid) {
+uint16_t cuboid_count_centers(const Cuboid * cuboid) {
     uint16_t xdim = cuboid->dimensions.x - 2;
     uint16_t ydim = cuboid->dimensions.y - 2;
     uint16_t zdim = cuboid->dimensions.z - 2;
@@ -148,38 +157,28 @@ uint16_t cuboid_count_centers(Cuboid * cuboid) {
 // initialization
 
 static void _initialize_cuboid_edges(Cuboid * cuboid) {
-    int extendedFlag = cuboid_uses_extended_dedges(cuboid);
-    int edgeSize = cuboid_edge_data_size(cuboid);
+    int edgeSize = sizeof(CuboidEdge);
     int edgeCount = cuboid_count_edges(cuboid);
     cuboid->edges = (void *)malloc(edgeSize * edgeCount);
     
     int i, completed = 0;
     for (i = 0; i < 12; i++) {
         int numEdges = cuboid_count_edges_for_dedge(cuboid, i);
-        _initialize_add_edges(cuboid, completed, i, extendedFlag);
+        _initialize_add_edges(cuboid, completed, i);
         completed += numEdges;
     }
 }
 
-static void _initialize_add_edges(Cuboid * cuboid, int offset, int dedge, int extended) {
-    void * buffer = &cuboid->edges[offset * cuboid_edge_data_size(cuboid)];
-    int count = cube_count_edges_for_dedge(cuboid, dedge);
-    int i;
+static void _initialize_add_edges(Cuboid * cuboid, int offset, int dedge) {
+    int count = cuboid_count_edges_for_dedge(cuboid, dedge);
+    int i, current = offset;
     for (i = 0; i < count; i++) {
-        if (extended) {
-            CuboidEdge edge;
-            edge.edgeIndex = i;
-            edge.dedgeIndex = dedge;
-            edge.symmetry = 0;
-            memcpy(buffer, &edge, sizeof(edge));
-            buffer = &buffer[sizeof(edge)];
-        } else {
-            CuboidBasicEdge edge;
-            edge.dedgeIndex = i;
-            edge.symmetry = 0;
-            memcpy(buffer, &edge, sizeof(edge));
-            buffer = &buffer[sizeof(edge)];
-        }
+        CuboidEdge edge;
+        edge.edgeIndex = i;
+        edge.dedgeIndex = dedge;
+        edge.symmetry = 0;
+        cuboid->edges[current] = edge;
+        current++;
     }
 }
 
@@ -201,9 +200,8 @@ static void _initialize_cuboid_centers(Cuboid * cuboid) {
     
     int i, j, offset = 0;
     for (i = 1; i <= 6; i++) {
-        int numCenters = cuboid_count_centers_for_face(cuboid);
+        int numCenters = cuboid_count_centers_for_face(cuboid, i);
         for (j = 0; j < numCenters; j++) {
-            void * dest = &cuboid->centers[offset * centerSize];
             CuboidCenter c;
             c.side = i;
             c.index = j;
@@ -221,27 +219,37 @@ static void _multiply_corners(Cuboid * out, const Cuboid * left, const Cuboid * 
         CuboidCorner leftCorner = left->corners[i];
         int rightIndex = leftCorner.index;
         CuboidCorner rightCorner = right->corners[rightIndex];
-        CuboidCorner outCorner;
-        outCorner.symmetry = symmetry_operation_compose(leftCorner.symmetry,
+        CuboidCorner outCorner = rightCorner;
+        outCorner.symmetry = symmetry3_operation_compose(leftCorner.symmetry,
                                                         rightCorner.symmetry);
-        outCorner.index = rightCorner.index;
-        out.corners[i] = outCorner;
+        out->corners[i] = outCorner;
     }
 }
 
 static void _multiply_edges(Cuboid * out, const Cuboid * left, const Cuboid * right) {
-    if (!cuboid_uses_extended_edges(left)) {
-        _multiply_basic_edges(out, left, right);
-        return;
-    } 
-    int edgeCount = cuboid_count_edges(left);
-    int i;
+    int i, edgeCount = cuboid_count_edges(left);
     for (i = 0; i < edgeCount; i++) {
-        CuboidEdge * leftEdge = &left->edges[sizeof(CuboidEdge) * i];
-        CuboidEdge * rightEdge = 
+        CuboidEdge leftEdge = left->edges[i];
+        int rightIndex = cuboid_edge_index(right,
+                                           leftEdge.dedgeIndex,
+                                           leftEdge.edgeIndex);
+        CuboidEdge rightEdge = right->edges[rightIndex];
+        CuboidEdge outEdge = rightEdge;
+        outEdge.symmetry = symmetry3_operation_compose(leftEdge.symmetry,
+                                                      rightEdge.symmetry);
+        out->edges[i] = outEdge;
     }
 }
 
-static void _multiply_basic_edges(Cuboid * out, const Cuboid * left, const Cuboid * right) {
+static void _multiply_centers(Cuboid * out, const Cuboid * left, const Cuboid * right) {
+    // this is the simple composition operation on a permutation ;)
     
+    int i, centerCount = cuboid_count_centers(left);
+    for (i = 0; i < centerCount; i++) {
+        CuboidCenter leftCenter = left->centers[i];
+        int rightIndex = cuboid_center_index(right,
+                                             leftCenter.side,
+                                             leftCenter.index);
+        out->centers[i] = right->centers[rightIndex];
+    }
 }
