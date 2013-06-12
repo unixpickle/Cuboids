@@ -1,7 +1,10 @@
-main: cuboid_base.o
+main: cuboid_moves.o
 
 test: main
 	$(MAKE) -C test
+
+cuboid_moves.o: cuboid_base.o build
+	gcc -c cuboid_moves.c -o build/cuboid_moves.o
 
 cuboid_base.o: symmetry3.o build
 	gcc -c cuboid_base.c -o build/cuboid_base.o

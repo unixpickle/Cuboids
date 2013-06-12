@@ -1,4 +1,5 @@
 #include "cuboid_base.h"
+#include "cuboid_moves_table.h"
 
 /*
 
@@ -39,6 +40,6 @@ Cuboid * cuboid_generate_quarter_face_turn(CuboidDimensions dimensions,
                                            CuboidMovesAxis axis,
                                            int offset);
 
-Cuboid * cuboid_generate_quarter_turn(CuboidDimensions dimensions
+Cuboid * cuboid_generate_quarter_turn(CuboidDimensions dimensions,
                                       CuboidMovesAxis axis,
                                       int sliceOffset);

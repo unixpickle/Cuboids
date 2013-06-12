@@ -46,6 +46,7 @@ void cuboid_free(Cuboid * cuboid) {
     if (cuboid->centers) {
         free(cuboid->centers);
     }
+    free(cuboid);
 }
 
 void cuboid_multiply(Cuboid * out, const Cuboid * left, const Cuboid * right) {
