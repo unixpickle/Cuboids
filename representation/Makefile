@@ -1,13 +1,16 @@
-main: cuboid_moves.o
+main: cuboid_qtmoves.o
 
 test: main
 	$(MAKE) -C test
 
-cuboid_moves.o: cuboid_base.o build
-	gcc -c cuboid_moves.c -o build/cuboid_moves.o
+cuboid_qtmoves.o: cuboid_base.o cuboid_center_turns.o build
+	gcc -c cuboid_qtmoves.c -o build/cuboid_qtmoves.o
 
 cuboid_base.o: symmetry3.o build
 	gcc -c cuboid_base.c -o build/cuboid_base.o
+
+cuboid_center_turns.o: build
+	gcc -c cuboid_center_turns.c -o build/cuboid_center_turns.o
 
 symmetry3.o: build
 	gcc -c symmetry3.c -o build/symmetry3.o

@@ -45,11 +45,11 @@ typedef struct {
 
 typedef struct {
 #if __BIG_ENDIAN
-    unsigned int symmetry : 4;
-    unsigned int index : 4;
+    unsigned char symmetry : 4;
+    unsigned char index : 4;
 #else
-    unsigned int index : 4;
-    unsigned int symmetry : 4;
+    unsigned char index : 4;
+    unsigned char symmetry : 4;
 #endif
 } __attribute__((__packed__)) CuboidCorner;
 
