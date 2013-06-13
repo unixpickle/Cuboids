@@ -1,3 +1,6 @@
+#ifndef __CUBOID_BASE_H__
+#define __CUBOID_BASE_H__
+
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
@@ -55,8 +58,8 @@ typedef struct {
 
 typedef struct {
     uint8_t side; // the side 1-6
-    int16_t index; // index in the center;
-    // the index field may be -1 to indicate that an insufficient
+    uint16_t index; // index in the center;
+    // the index field may be ignored if an insufficient
     // amount of information was available to figure it out
 } __attribute__((__packed__)) CuboidCenter;
 
@@ -96,6 +99,7 @@ Cuboid * cuboid_create(CuboidDimensions dimensions);
 void cuboid_free(Cuboid * cuboid);
 
 void cuboid_multiply(Cuboid * out, const Cuboid * left, const Cuboid * right);
+void cuboid_multiply_to(const Cuboid * left, Cuboid * right);
 Cuboid * cuboid_copy(const Cuboid * cuboid);
 
 uint16_t cuboid_edge_index(const Cuboid * cuboid, int dedge, int edge);
@@ -106,3 +110,5 @@ uint16_t cuboid_count_edges(const Cuboid * cuboid);
 
 uint16_t cuboid_count_centers_for_face(const Cuboid * cuboid, int number);
 uint16_t cuboid_count_centers(const Cuboid * cuboid);
+
+#endif

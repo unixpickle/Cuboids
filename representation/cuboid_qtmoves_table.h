@@ -83,7 +83,7 @@ typedef struct {
     // each center in a line in the same direction (ordering) as
     // the centers of the slice are ordered.
     
-    uint8_t lineAxis; // 0 = x, 1 = y
+    uint8_t lineAxis[4]; // 0 = x, 1 = y
     uint8_t flipHoriz[4];
     uint8_t flipVert[4];
 } SliceMap;
@@ -101,12 +101,13 @@ static const SliceMap SlicesTable[] = {
      3,
      {0, 0, 0, 0},
      {1, 1, 1, 1},
-     {}
+     {0, 0, 0, 0}
     },
     {{4, 5, 11, 10},
      {3, 5, 4, 6},
      1,
      {0, 1, 0, 1},
+     {0, 0, 1, 1},
      {1, 0, 0, 1}}
 };
 

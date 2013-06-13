@@ -61,6 +61,12 @@ void cuboid_multiply(Cuboid * out, const Cuboid * left, const Cuboid * right) {
     }
 }
 
+void cuboid_multiply_to(const Cuboid * left, Cuboid * right) {
+    Cuboid * temp = cuboid_copy(right);
+    cuboid_multiply(right, left, temp);
+    cuboid_free(temp);
+}
+
 Cuboid * cuboid_copy(const Cuboid * cuboid) {
     Cuboid * copy = (Cuboid *)malloc(sizeof(Cuboid));
     bzero(copy, sizeof(Cuboid));
