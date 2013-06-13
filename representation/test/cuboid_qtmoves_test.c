@@ -48,8 +48,8 @@ void test_2x2_turns() {
     dim.y = 2;
     dim.z = 2;
     
-    Cuboid * right = cuboid_generate_quarter_face_turn(dim, CuboidMovesAxisX, 1);
-    Cuboid * up = cuboid_generate_quarter_face_turn(dim, CuboidMovesAxisY, 1);
+    Cuboid * right = cuboid_quarter_face_turn(dim, CuboidMovesAxisX, 1);
+    Cuboid * up = cuboid_quarter_face_turn(dim, CuboidMovesAxisY, 1);
 
     puts("Validating R and U...");
 
@@ -96,8 +96,8 @@ void test_4x4_turns() {
     
     CuboidDimensions dim = {4, 4, 4};
     
-    Cuboid * down = cuboid_generate_quarter_face_turn(dim, CuboidMovesAxisY, -1);
-    Cuboid * back = cuboid_generate_quarter_face_turn(dim, CuboidMovesAxisZ, -1);
+    Cuboid * down = cuboid_quarter_face_turn(dim, CuboidMovesAxisY, -1);
+    Cuboid * back = cuboid_quarter_face_turn(dim, CuboidMovesAxisZ, -1);
     
     // validate the centers
     uint8_t expectedCenters[] = {1, 3, 0, 2};
@@ -187,9 +187,9 @@ void test_slices_3x3() {
     
     CuboidDimensions dim = {3, 3, 3};
     
-    Cuboid * sliceM = cuboid_generate_quarter_slice(dim, CuboidMovesAxisX, 0);
-    Cuboid * sliceS = cuboid_generate_quarter_slice(dim, CuboidMovesAxisZ, 0);
-    Cuboid * sliceEPrime = cuboid_generate_quarter_slice(dim, CuboidMovesAxisY, 0);
+    Cuboid * sliceM = cuboid_quarter_slice(dim, CuboidMovesAxisX, 0);
+    Cuboid * sliceS = cuboid_quarter_slice(dim, CuboidMovesAxisZ, 0);
+    Cuboid * sliceEPrime = cuboid_quarter_slice(dim, CuboidMovesAxisY, 0);
     
     // validate center movement
     uint8_t centersS[] = {1, 2, 6, 5, 3, 4};
@@ -252,8 +252,8 @@ void test_slices_4x4() {
     puts("Testing slices on the 4x4x4...");
     
     CuboidDimensions dim = {4, 4, 4};
-    Cuboid * upperEPrime = cuboid_generate_quarter_slice(dim, CuboidMovesAxisY, 0);
-    Cuboid * rightM = cuboid_generate_quarter_slice(dim, CuboidMovesAxisX, 1);
+    Cuboid * upperEPrime = cuboid_quarter_slice(dim, CuboidMovesAxisY, 0);
+    Cuboid * rightM = cuboid_quarter_slice(dim, CuboidMovesAxisX, 1);
     
     Cuboid * cuboid = cuboid_create(dim);
     int i;
@@ -291,8 +291,8 @@ void test_slices_7x7() {
     puts("Testing slices on the 7x7x7...");
     
     CuboidDimensions dim = {7, 7, 7};
-    Cuboid * innerRightM = cuboid_generate_quarter_slice(dim, CuboidMovesAxisX, 3);
-    Cuboid * innerUpEPrime = cuboid_generate_quarter_slice(dim, CuboidMovesAxisY, 1);
+    Cuboid * innerRightM = cuboid_quarter_slice(dim, CuboidMovesAxisX, 3);
+    Cuboid * innerUpEPrime = cuboid_quarter_slice(dim, CuboidMovesAxisY, 1);
     
     Cuboid * cuboid = cuboid_create(dim);
     int i;

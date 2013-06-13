@@ -1,5 +1,22 @@
 #import "cuboid_center_turns.h"
 
+void cuboid_center_dimensions(CuboidDimensions dim, int face, int * w, int * h) {
+    if (face == 1 || face == 2) {
+        *w = dim.x - 2;
+        *h = dim.y - 2;
+    } else if (face == 3 || face == 4) {
+        *w = dim.x - 2;
+        *h = dim.z - 2;
+    } else {
+        *w = dim.z - 2;
+        *h = dim.y - 2;
+    }
+}
+
+/*****************
+ * Quarter turns *
+ *****************/
+
 int qt_center_point_to_index(int size, int x, int y) {
     y *= -1;
     x += size / 2;
@@ -38,4 +55,29 @@ void qt_rotate_center_point(int face, int * x, int * y) {
         *x = -tmpY;
         *y = tmpX;
     }
+}
+
+/**************
+ * Half turns *
+ **************/
+
+int ht_center_point_to_index(int w, int h, int x, int y) {
+    int xOffset = x + w / 2, yOffset = -y + h / 2;
+    if (w % 2 == 0 && x > w / 2) xOffset -= 1;
+    if (h % 2 == 0 && y > h / 2) yOffset -= 1;
+    return xOffset + yOffset * w;
+}
+
+void ht_center_point_from_index(int w, int h, int index, int * x, int * y) {
+    int xOffset = index % w;
+    int yOffset = index / w;
+    if (w % 2 == 0 && xOffset >= w / 2) xOffset += 1;
+    if (h % 2 == 0 && yOffset >= h / 2) yOffset += 1;
+    *x = xOffset - w / 2;
+    *y = -(yOffset - h / 2);
+}
+
+void ht_rotate_center_point(int * x, int * y) {
+    *x = -(*x);
+    *y = -(*y);
 }

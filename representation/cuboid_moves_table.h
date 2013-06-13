@@ -2,7 +2,6 @@
 #define __CUBOID_MOVES_TABLE_H_
 
 #include <stdint.h>
-#include "cuboid_qtmoves.h"
 
 // defines an X,Y,Z point on the cube
 #define PT(x,y,z) ((x<<2) | (y<<1) | z)
@@ -20,9 +19,9 @@ typedef struct {
     uint8_t cornerPieces[4];
     
     uint8_t symmetry;
-} MoveMap;
+} FaceMap;
 
-const static MoveMap MovesTable[] = {
+const static FaceMap FacesTable[] = {
     // L turn
     {
         {4, 3, 10, 9}, {9, 4, 3, 10},

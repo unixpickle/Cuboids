@@ -1,6 +1,5 @@
-#include "cuboid_qtmoves_table.h"
-#include "cuboid_center_turns.h"
 #include "cuboid_moves.h"
+#include "cuboid_center_turns.h"
 #include "cuboid_base.h"
 
 /*
@@ -33,10 +32,10 @@ STANDARDS TO NOTE:
 int cuboid_validate_quarter_turn(CuboidDimensions dimensions,
                                  CuboidMovesAxis axis);
 
-Cuboid * cuboid_generate_quarter_face_turn(CuboidDimensions dimensions,
+Cuboid * cuboid_quarter_face_turn(CuboidDimensions dimensions,
                                            CuboidMovesAxis axis,
                                            int offset);
 
-Cuboid * cuboid_generate_quarter_slice(CuboidDimensions dimensions,
+Cuboid * cuboid_quarter_slice(CuboidDimensions dimensions,
                                        CuboidMovesAxis axis,
                                        int layer);

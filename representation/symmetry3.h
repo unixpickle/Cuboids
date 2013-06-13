@@ -8,6 +8,8 @@ Symmetry map:
 5 - (2 3 1)
 */
 
+#include <string.h>
+
 int symmetry3_operation_compose(int left, int right);
 int symmetry3_operation_inverse(int op);
 int symmetry3_operation_find(const unsigned char * orig, const unsigned char * res);
