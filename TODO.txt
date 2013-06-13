@@ -1,3 +1,5 @@
 TODO:
 
 - optimize multiplication for *cubes*
+- simplify double turn center rotation
+- in cuboid_copy_from_stickermap, calculate the edgeIndex
