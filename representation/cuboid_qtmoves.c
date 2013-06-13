@@ -6,14 +6,7 @@ static void _qt_rotate_corners(Cuboid * out, CuboidMovesAxis axis, int offset);
 static void _qt_rotate_edges(Cuboid * out, CuboidMovesAxis axis, int offset);
 static void _qt_rotate_centers(Cuboid * out, CuboidMovesAxis axis, int offset);
 
-// gives the index of a center piece on a center line
-static int _qt_center_line_index(CuboidDimensions dim,
-                                 SliceMap sliceMap,
-                                 int centerIndex, // 0-3
-                                 int lineIndex,
-                                 int indexInLine);
-static int _qt_center_line_length(CuboidDimensions dim,
-                                  SliceMap sliceMap);
+static int _qt_center_line_length(CuboidDimensions dim, SliceMap sliceMap);
 static void _qt_slice_edges(Cuboid * out, CuboidMovesAxis axis, int layer);
 static void _qt_slice_center(Cuboid * out, CuboidMovesAxis axis, int layer); 
 
@@ -141,44 +134,12 @@ static void _qt_rotate_centers(Cuboid * out, CuboidMovesAxis axis, int offset) {
  * Slices *
  **********/
 
-static int _qt_center_line_index(CuboidDimensions dim,
-                                 SliceMap sliceMap,
-                                 int centerIndex, // 0-3
-                                 int lineIndex,
-                                 int indexInLine) {
-    int w, h;
-    cuboid_center_dimensions(dim, sliceMap.centers[centerIndex], &w, &h);
-    
-    int xValue = 0, yValue = 0;
-    if (sliceMap.lineAxis[centerIndex] == 0) {
-        // the line is horizontal
-        if (sliceMap.flipVert[centerIndex]) {
-            yValue = h - lineIndex - 1;
-        } else yValue = lineIndex;
-        if (sliceMap.flipHoriz[centerIndex]) {
-            xValue = w - indexInLine - 1;
-        } else xValue = indexInLine;
-    } else {
-        // the line is vertical
-        if (sliceMap.flipHoriz[centerIndex]) {
-            xValue = w - lineIndex - 1;
-        } else xValue = lineIndex;
-        if (sliceMap.flipVert[centerIndex]) {
-            yValue = h - indexInLine - 1;
-        } else yValue = indexInLine;
-    }
-    return (yValue * w) + xValue;
-}
-
 static int _qt_center_line_length(CuboidDimensions dim,
                                   SliceMap sliceMap) {
     // this method assumes that the slice map is completely
-    // valid and thus that every center would yield the same line.
-    int w, h;
-    cuboid_center_dimensions(dim, sliceMap.centers[0], &w, &h);cuboid_face_for_face_turn
-    if (sliceMap.lineAxis[0] == 0) {
-        return w;
-    } else return h;
+    // validated for a quarter turn and thus that every
+    // center would yield the same line.
+    return cuboid_slice_center_line_length(dim, sliceMap, 0);
 }
 
 static void _qt_slice_edges(Cuboid * out, CuboidMovesAxis axis, int layer) {
@@ -210,8 +171,8 @@ static void _qt_slice_center(Cuboid * out, CuboidMovesAxis axis, int layer) {
         int j;
         for (j = 0; j < numCenters; j++) {
             // dest is physical slot, source is piece
-            int destIndex = _qt_center_line_index(out->dimensions, map, i, layer, j);
-            int sourceIndex = _qt_center_line_index(out->dimensions, map,
+            int destIndex = cuboid_slice_center_line_index(out->dimensions, map, i, layer, j);
+            int sourceIndex = cuboid_slice_center_line_index(out->dimensions, map,
                                                     sourceCenter, layer, j);
             int absDest = cuboid_center_index(out, map.centers[i], destIndex);
             CuboidCenter center;

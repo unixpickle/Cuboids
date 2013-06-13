@@ -1,6 +1,5 @@
 #include "cuboid_base.h"
 #include "cuboid_moves.h"
-#include "cuboid_center_turns.h"
 
 /**
  * Double moves are possible on all faces of a cuboid.

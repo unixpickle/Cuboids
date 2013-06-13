@@ -4,6 +4,9 @@ static void _ht_face_turn_corners(Cuboid * out, CuboidMovesAxis axis, int offset
 static void _ht_face_turn_edges(Cuboid * out, CuboidMovesAxis axis, int offset);
 static void _ht_face_turn_centers(Cuboid * out, CuboidMovesAxis axis, int offset);
 
+static void _ht_slice_centers(Cuboid * out, CuboidMovesAxis axis, int layer);
+static void _ht_slice_edges(Cuboid * out, CuboidMovesAxis axis, int layer);
+
 Cuboid * cuboid_half_face_turn(CuboidDimensions dims, CuboidMovesAxis axis, int offset) {
     assert(offset == -1 || offset == 1);
     Cuboid * out = cuboid_create(dims);
@@ -16,9 +19,18 @@ Cuboid * cuboid_half_face_turn(CuboidDimensions dims, CuboidMovesAxis axis, int 
 }
 
 Cuboid * cuboid_half_slice(CuboidDimensions dims, CuboidMovesAxis axis, int layer) {
-    // TODO: future alex
+    // confirm that such a slice is possible
+    int edgeSize;
+    if (axis == CuboidMovesAxisX) edgeSize = dims.x - 2;
+    if (axis == CuboidMovesAxisY) edgeSize = dims.y - 2;
+    if (axis == CuboidMovesAxisZ) edgeSize = dims.z - 2;
+    assert(layer >= 0 && layer < edgeSize);
     
-    return NULL;
+    Cuboid * out = cuboid_create(dims);
+    _ht_slice_centers(out, axis, layer);
+    _ht_slice_edges(out, axis, layer);
+    
+    return out;
 }
 
 /**************************
@@ -79,5 +91,45 @@ static void _ht_face_turn_centers(Cuboid * out, CuboidMovesAxis axis, int offset
         center.side = face;
         center.index = sourceIndex;
         out->centers[destIndex] = center;
+    }
+}
+
+/**********************
+ * Performing a slice *
+ **********************/
+
+static void _ht_slice_centers(Cuboid * out, CuboidMovesAxis axis, int layer) {
+    SliceMap map = cuboid_moves_slice_map(axis);
+    int i, j;
+    for (i = 0; i < 4; i++) {
+        int side = map.centers[i];
+        int oppositeSide = map.centers[i < 2 ? i + 2 : i - 2];
+        int lineLength = cuboid_slice_center_line_length(out->dimensions, map, i);
+        for (j = 0; j < lineLength; j++) {
+            int myIndex = cuboid_slice_center_line_index(out->dimensions, map,
+                                                         side, layer, j);
+            int oppIndex = cuboid_slice_center_line_index(out->dimensions, map,
+                                                          oppositeSide, layer, j);
+            int writeIndex = cuboid_center_index(out, side, myIndex);
+            CuboidCenter c;
+            c.side = oppositeSide;
+            c.index = oppIndex;
+            out->centers[writeIndex] = c;
+        }
+    }
+}
+
+static void _ht_slice_edges(Cuboid * out, CuboidMovesAxis axis, int layer) {
+    SliceMap map = cuboid_moves_slice_map(axis);
+    int i;
+    for (i = 0; i < 4; i++) {
+        int dedge = map.dedges[i];
+        int oppDedge = map.dedges[i < 2 ? i + 2 : i - 2];
+        int destIndex = cuboid_edge_index(out, dedge, layer);
+        CuboidEdge edge;
+        edge.dedgeIndex = oppDedge;
+        edge.edgeIndex = layer;
+        edge.symmetry = 0;
+        out->edges[destIndex] = edge;
     }
 }
