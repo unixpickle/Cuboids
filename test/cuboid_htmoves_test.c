@@ -1,6 +1,6 @@
 #include "representation/cuboid_htmoves.h"
 #include "representation/cuboid_qtmoves.h"
-#include <stdio.h>
+#include "test.h"
 
 void test_3x2x3_turns();
 void test_5x5x5_turns();
@@ -11,13 +11,12 @@ int main() {
     test_5x5x5_turns();
     test_3x4x3_slices();
     
-    puts("Hit return to exit...");
-    char buf[3];
-    fgets(buf, 3, stdin);
+    tests_completed();
+    return 0;
 }
 
 void test_3x2x3_turns() {
-    puts("Testing 3x2x3 half-turns...");
+    test_initiated("3x2x3 half-turns");
     CuboidDimensions dims = {3, 2, 3};
     
     Cuboid * turnR = cuboid_half_face_turn(dims, CuboidMovesAxisX, 1);
@@ -83,11 +82,11 @@ void test_3x2x3_turns() {
     cuboid_free(turnR);
     cuboid_free(turnU);
     
-    puts("Test complete.");
+    test_completed();
 }
 
 void test_5x5x5_turns() {
-    puts("Testing 5x5x5 half-turns...");
+    test_initiated("5x5x5 half-turns");
     CuboidDimensions dims = {5, 5, 5};
     
     Cuboid * turnR = cuboid_half_face_turn(dims, CuboidMovesAxisX, 1);
@@ -125,11 +124,11 @@ void test_5x5x5_turns() {
     }
     
     cuboid_free(turnR);
-    puts("Test complete.");
+    test_completed();
 }
 
 void test_3x4x3_slices() {
-    puts("Testing 3x4x3 double slices...");
+    test_initiated("3x4x3 double slices");
     CuboidDimensions dims = {3, 4, 3};
     
     Cuboid * htSlice = cuboid_half_slice(dims, CuboidMovesAxisY, 0);
@@ -206,5 +205,5 @@ void test_3x4x3_slices() {
     cuboid_free(shouldEqual);
     cuboid_free(htSlice);
     
-    puts("Test complete.");
+    test_completed();
 }

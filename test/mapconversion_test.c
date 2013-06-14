@@ -1,5 +1,5 @@
 #include "stickers/mapconversion.h"
-#include <stdio.h>
+#include "test.h"
 
 void test_3x3x3_from_stickers();
 void test_back_and_forth();
@@ -8,14 +8,12 @@ int main() {
     test_3x3x3_from_stickers();
     test_back_and_forth();
     
-    puts("Hit return to exit...");
-    char buf[3];
-    fgets(buf, 3, stdin);
+    tests_completed();
     return 0;
 }
 
 void test_3x3x3_from_stickers() {
-    puts("Testing 3x3x3 from sticker map...");
+    test_initiated("sticker map -> 3x3x3");
     
     CuboidDimensions dim = {3, 3, 3};
     
@@ -49,11 +47,11 @@ void test_3x3x3_from_stickers() {
     stickermap_free(stickers);
     cuboid_free(cuboid);
     
-    puts("Test complete.");
+    test_completed();
 }
 
 void test_back_and_forth() {
-    puts("Testing conversion back and forth...");
+    test_initiated("conversion back and forth");
     
     CuboidDimensions dim = {3, 4, 3};
     const char * stickerData = "655434665456" "433333556643" "222122221"
@@ -75,5 +73,5 @@ void test_back_and_forth() {
     stickermap_free(stickers);
     cuboid_free(cuboid);
     
-    puts("Test complete.");
+    test_completed();
 }

@@ -1,5 +1,5 @@
 #include "representation/cuboid_qtmoves.h"
-#include <stdio.h>
+#include "test.h"
 
 void test_validate();
 void test_2x2_turns();
@@ -16,15 +16,12 @@ int main() {
     test_slices_4x4();
     test_slices_7x7();
     
-    puts("Hit return to exit...");
-    char buf[3];
-    fgets(buf, 3, stdin);
-    
+    tests_completed();
     return 0;
 }
 
 void test_validate() {
-    puts("Testing cuboid_validate_quarter_turn()...");
+    test_initiated("cuboid_validate_quarter_turn()");
     CuboidDimensions dim;
     dim.x = 3;
     dim.y = 4;
@@ -38,11 +35,11 @@ void test_validate() {
     if (cuboid_validate_quarter_turn(dim, CuboidMovesAxisZ)) {
         puts("Error: on a 3x4x3 a Z quarter turn is not allowed.");
     }
-    puts("Test complete.");
+    test_completed();
 }
 
 void test_2x2_turns() {
-    puts("Testing turns on the 2x2x2...");
+    test_initiated("turns on the 2x2x2");
     CuboidDimensions dim;
     dim.x = 2;
     dim.y = 2;
@@ -50,8 +47,6 @@ void test_2x2_turns() {
     
     Cuboid * right = cuboid_quarter_face_turn(dim, CuboidMovesAxisX, 1);
     Cuboid * up = cuboid_quarter_face_turn(dim, CuboidMovesAxisY, 1);
-
-    puts("Validating R and U...");
 
     const uint8_t correctRightIndexes[] = {0, 1, 2, 3, 5, 7, 4, 6};
     const uint8_t correctUpIndexes[] = {0, 1, 3, 7, 4, 5, 2, 6};
@@ -88,11 +83,11 @@ void test_2x2_turns() {
     cuboid_free(right);
     cuboid_free(up);
     
-    puts("Test complete.");
+    test_completed();
 }
 
 void test_4x4_turns() {
-    puts("Testing turns on the 4x4x4...");
+    test_initiated("turns on the 4x4x4");
     
     CuboidDimensions dim = {4, 4, 4};
     
@@ -179,11 +174,11 @@ void test_4x4_turns() {
     cuboid_free(back);
     cuboid_free(cube);
     
-    puts("Test complete.");
+    test_completed();
 }
 
 void test_slices_3x3() {
-    puts("Testing slices on a 3x3x3...");
+    test_initiated("slices on a 3x3x3");
     
     CuboidDimensions dim = {3, 3, 3};
     
@@ -245,11 +240,11 @@ void test_slices_3x3() {
     cuboid_free(sliceEPrime);
     cuboid_free(cube);
     
-    puts("Test complete.");
+    test_completed();
 }
 
 void test_slices_4x4() {
-    puts("Testing slices on the 4x4x4...");
+    test_initiated("slices on the 4x4x4");
     
     CuboidDimensions dim = {4, 4, 4};
     Cuboid * upperEPrime = cuboid_quarter_slice(dim, CuboidMovesAxisY, 0);
@@ -329,5 +324,5 @@ void test_slices_7x7() {
     cuboid_free(cuboid);
     cuboid_free(innerRightM);
     cuboid_free(innerUpEPrime);
-    puts("Test complete.");
+    test_completed();
 }

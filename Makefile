@@ -1,15 +1,17 @@
-all: representation/build stickers/build
+SOURCE_DIRS=representation stickers algebra
+
+all:
+	for dir in $(SOURCE_DIRS); do \
+		cd $$dir && $(MAKE); \
+		cd ..; \
+	done
 
 test: all
 	cd test && $(MAKE)
 
-representation/build:
-	cd representation && $(MAKE)
-
-stickers/build:
-	cd stickers && $(MAKE)
-
 clean:
-	cd representation && $(MAKE) clean
-	cd stickers && $(MAKE) clean
+	for dir in $(SOURCE_DIRS); do \
+		cd $$dir && $(MAKE) clean; \
+		cd ..; \
+	done
 	cd test && $(MAKE) clean

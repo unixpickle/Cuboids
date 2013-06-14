@@ -1,3 +1,6 @@
+#ifndef __STICKERMAP_H__
+#define __STICKERMAP_H__
+
 #include <stdint.h>
 #include "representation/cuboid_base.h"
 
@@ -32,3 +35,6 @@ void stickermap_index_to_point(const StickerMap * map, int face,
                                int faceIndex, int * x, int * y);
 int stickermap_index_from_point(const StickerMap * map,
                                 int face, int x, int y);
+
+#endif
+                                

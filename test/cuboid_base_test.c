@@ -1,5 +1,5 @@
 #include "representation/cuboid_base.h"
-#include <stdio.h>
+#include "test.h"
 
 void test_2x2();
 void test_big_cube();
@@ -9,11 +9,13 @@ int main() {
     test_2x2();
     test_big_cube();
     test_cuboid();
+    
+    tests_completed();
     return 0;
 }
 
 void test_2x2() {
-    puts("Testing the 2x2x2 cuboid...");
+    test_initiated("the 2x2x2 cuboid");
     CuboidDimensions dim;
     dim.x = 2;
     dim.y = 2;
@@ -39,11 +41,11 @@ void test_2x2() {
     
     cuboid_free(ident);
     
-    puts("Test complete.");
+    test_completed();
 }
 
 void test_big_cube() {
-    puts("Testing the 8x8x8 cuboid...");
+    test_initiated("the 8x8x8 cuboid");
     CuboidDimensions dim;
     int i, j;
     dim.x = 8;
@@ -91,11 +93,11 @@ void test_big_cube() {
     }
     
     cuboid_free(cuboid);
-    puts("Test complete.");
+    test_completed();
 }
 
 void test_cuboid() {
-    puts("Testing the 3x4x3 cuboid...");
+    test_initiated("the 3x4x3 cuboid");
     CuboidDimensions dim;
     dim.x = 3;
     dim.y = 4;
@@ -124,5 +126,5 @@ void test_cuboid() {
     }
     
     cuboid_free(cuboid);
-    puts("Test complete.");
+    test_completed();
 }
