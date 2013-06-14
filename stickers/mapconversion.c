@@ -6,6 +6,12 @@ static int _convert_stickermap_edges(Cuboid * cuboid, const StickerMap * sm);
 static int _convert_stickermap_corners(Cuboid * cuboid, const StickerMap * sm);
 static int _convert_stickermap_centers(Cuboid * cuboid, const StickerMap * sm);
 
+// Cuboid -> StickerMap
+
+static void _convert_cuboid_edges(StickerMap * sm, const Cuboid * cuboid);
+static void _convert_cuboid_corners(StickerMap * sm, const Cuboid * cuboid);
+static void _convert_cuboid_centers(StickerMap * sm, const Cuboid * cuboid);
+
 // dealing with individual sticker indexes
 static uint32_t _sm_edge_index(const StickerMap * sm,
                                 int face, int dedgePos,
@@ -16,6 +22,7 @@ static uint32_t _sm_center_index(const StickerMap * sm,
                                  int face, int index);
 
 void convert_sm_to_cb(Cuboid * cuboid, const StickerMap * map) {
+    assert(cuboid_dimensions_equal(cuboid->dimensions, map->dimensions));
     if (cuboid->edges) {
         _convert_stickermap_edges(cuboid, map);
     }
@@ -26,11 +33,18 @@ void convert_sm_to_cb(Cuboid * cuboid, const StickerMap * map) {
 }
 
 void convert_cb_to_sm(StickerMap * map, const Cuboid * cuboid) {
-    abort();
+    assert(cuboid_dimensions_equal(cuboid->dimensions, map->dimensions));
+    if (cuboid->edges) {
+        _convert_cuboid_edges(map, cuboid);
+    }
+    if (cuboid->centers) {
+        _convert_cuboid_centers(map, cuboid);
+    }
+    _convert_cuboid_corners(map, cuboid);
 }
 
-Triple converter_sm_edge_stickers(const StickerMap * sm,
-                                  int dedge, int edge) {
+Triple stickermap_get_edge_stickers(const StickerMap * sm,
+                                    int dedge, int edge) {
     Triple stickers = {0, 0, 0};
     
     DedgeMap map = DedgesTable[dedge];
@@ -52,8 +66,8 @@ Triple converter_sm_edge_stickers(const StickerMap * sm,
     return stickers;
 }
 
-Triple converter_sm_corner_stickers(const StickerMap * sm,
-                                    int corner) {
+Triple stickermap_get_corner_stickers(const StickerMap * sm,
+                                      int corner) {
     uint8_t stickers[3];
     CornerMap map = CornersTable[corner];
     int i;
@@ -67,7 +81,40 @@ Triple converter_sm_corner_stickers(const StickerMap * sm,
     return t;
 }
 
-int converter_dedge_for_triple(Triple t, int * symmetry) {
+void stickermap_set_edge_stickers(StickerMap * sm, int dedge,
+                                  int edge, Triple t) {
+    int i;
+    DedgeMap map = DedgesTable[dedge];
+    for (i = 0; i < 2; i++) {
+        uint8_t face = map.sides[i].face;
+        uint8_t position = map.sides[i].position;
+        uint8_t flipFlag = map.sides[i].flipFlag;
+        
+        uint8_t setSticker;
+        if (face == 1 || face == 2) setSticker = t.z;
+        else if (face == 3 || face == 4) setSticker = t.y;
+        else setSticker = t.x;
+        
+        uint32_t stickerIndex = _sm_edge_index(sm, face, position,
+                                                edge, flipFlag);
+        sm->stickers[stickerIndex] = setSticker;
+    }
+}
+
+void stickermap_set_corner_stickers(StickerMap * sm,
+                                    int corner, Triple t) {
+    uint8_t stickers[3] = {t.x, t.y, t.z};
+    CornerMap map = CornersTable[corner];
+    int i;
+    for (i = 0; i < 3; i++) {
+        int face = map.sides[i].face;
+        int x = map.sides[i].x, y = map.sides[i].y;
+        uint32_t stickerIndex = _sm_corner_index(sm, face, x, y);
+        sm->stickers[stickerIndex] = stickers[i];
+    }
+}
+
+int conversion_dedge_for_triple(Triple t, int * symmetry) {
     uint8_t tVal[3] = {t.x, t.y, t.z};
     int i;
     for (i = 0; i < 12; i++) {
@@ -80,7 +127,7 @@ int converter_dedge_for_triple(Triple t, int * symmetry) {
     return -1;
 }
 
-int converter_corner_for_triple(Triple t, int * symmetry) {
+int conversion_corner_for_triple(Triple t, int * symmetry) {
     uint8_t tVal[3] = {t.x, t.y, t.z};
     int i;
     for (i = 0; i < 8; i++) {
@@ -91,6 +138,22 @@ int converter_corner_for_triple(Triple t, int * symmetry) {
         }
     }
     return -1;
+}
+
+Triple conversion_triple_for_edge(CuboidEdge edge) {
+    uint8_t data[3];
+    memcpy(data, EdgePieces[edge.dedgeIndex], 3);
+    symmetry3_operation_perform(edge.symmetry, data);
+    Triple t = {data[0], data[1], data[2]};
+    return t;
+}
+
+Triple conversion_triple_for_corner(CuboidCorner corner) {
+    uint8_t data[3];
+    memcpy(data, CornerPieces[corner.index], 3);
+    symmetry3_operation_perform(corner.symmetry, data);
+    Triple t = {data[0], data[1], data[2]};
+    return t;
 }
 
 /************************
@@ -104,9 +167,9 @@ static int _convert_stickermap_edges(Cuboid * cuboid, const StickerMap * sm) {
     for (dedgeSlot = 0; dedgeSlot < 12; dedgeSlot++) {
         int edgeCount = cuboid_count_edges_for_dedge(cuboid, dedgeSlot);
         for (edgeSlot = 0; edgeSlot < edgeCount; edgeSlot++) {
-            Triple stickers = converter_sm_edge_stickers(sm, dedgeSlot, edgeSlot);
+            Triple stickers = stickermap_get_edge_stickers(sm, dedgeSlot, edgeSlot);
             int symmetry, dedgePiece;
-            dedgePiece = converter_dedge_for_triple(stickers, &symmetry);
+            dedgePiece = conversion_dedge_for_triple(stickers, &symmetry);
             if (dedgePiece < 0) return 0;
             
             int edgeAddr = cuboid_edge_index(cuboid, dedgeSlot, edgeSlot);
@@ -125,9 +188,9 @@ static int _convert_stickermap_corners(Cuboid * cuboid, const StickerMap * sm) {
     // and put that info into our Cuboid's corner data.
     int corner;
     for (corner = 0; corner < 8; corner++) {
-        Triple stickers = converter_sm_corner_stickers(sm, corner);
+        Triple stickers = stickermap_get_corner_stickers(sm, corner);
         int symmetry, cornerPiece;
-        cornerPiece = converter_corner_for_triple(stickers, &symmetry);
+        cornerPiece = conversion_corner_for_triple(stickers, &symmetry);
         if (cornerPiece < 0) return 0;
         
         CuboidCorner c;
@@ -154,6 +217,46 @@ static int _convert_stickermap_centers(Cuboid * cuboid, const StickerMap * sm) {
         }
     }
     return 1;
+}
+
+/************************
+ * Cuboid -> StickerMap *
+ ************************/
+
+static void _convert_cuboid_edges(StickerMap * sm, const Cuboid * cuboid) {
+    int dedgeSlot, edgeSlot;
+    for (dedgeSlot = 0; dedgeSlot < 12; dedgeSlot++) {
+        int edgeCount = cuboid_count_edges_for_dedge(cuboid, dedgeSlot);
+        for (edgeSlot = 0; edgeSlot < edgeCount; edgeSlot++) {
+            int edgeIndex = cuboid_edge_index(cuboid, dedgeSlot, edgeSlot);
+            CuboidEdge edge = cuboid->edges[edgeIndex];
+            
+            Triple t = conversion_triple_for_edge(edge);
+            stickermap_set_edge_stickers(sm, dedgeSlot, edgeSlot, t);
+        }
+    }
+}
+
+static void _convert_cuboid_corners(StickerMap * sm, const Cuboid * cuboid) {
+    int i;
+    for (i = 0; i < 8; i++) {
+        CuboidCorner corner = cuboid->corners[i];
+        Triple t = conversion_triple_for_corner(corner);
+        stickermap_set_corner_stickers(sm, i, t);
+    }
+}
+
+static void _convert_cuboid_centers(StickerMap * sm, const Cuboid * cuboid) {
+    int face, centerSlot;
+    for (face = 1; face <= 6; face++) {
+        int centerCount = cuboid_count_centers_for_face(cuboid, face);
+        for (centerSlot = 0; centerSlot < centerCount; centerSlot++) {
+            int centerIndex = cuboid_center_index(cuboid, face, centerSlot);
+            CuboidCenter c = cuboid->centers[centerIndex];
+            uint32_t stickerIndex = _sm_center_index(sm, face, centerSlot);
+            sm->stickers[stickerIndex] = c.side;
+        }
+    }
 }
 
 /**************************

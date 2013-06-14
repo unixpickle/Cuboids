@@ -72,5 +72,8 @@ void test_back_and_forth() {
         }
     }
     
+    stickermap_free(stickers);
+    cuboid_free(cuboid);
+    
     puts("Test complete.");
 }
