@@ -2,9 +2,11 @@
 #include "notation/parser.h"
 
 void test_tokens();
+void test_algorithm();
 
 int main() {
     test_tokens();
+    test_algorithm();
     
     tests_completed();
     return 0;
@@ -60,6 +62,87 @@ void test_tokens() {
     if (upWide->power != 2)
         puts("Error: 13Uw2 processed the wrong power.");
     algorithm_free(upWide);
+    
+    test_completed();
+}
+
+void test_algorithm() {
+    test_initiated("algorithm parser");
+    
+    Algorithm * algo = algorithm_for_string("R2 U' 12Rw15 (R U)2 R' S'");
+    if (algorithm_container_count(algo) != 6) {
+        puts("Error: invalid algorithm token count.");
+    }
+    
+    Algorithm * algo1 = algorithm_container_get(algo, 0);
+    if (algo1->type != AlgorithmTypeWideTurn ||
+        algo1->contents.wideTurn.face != 'R' ||
+        algo1->contents.wideTurn.numLayers != 1 ||
+        algo1->inverseFlag != 0 ||
+        algo1->power != 2) {
+        puts("Error: invalid token at index 0.");
+    }
+    algo1 = algorithm_container_get(algo, 1);
+    if (algo1->type != AlgorithmTypeWideTurn ||
+        algo1->contents.wideTurn.face != 'U' ||
+        algo1->contents.wideTurn.numLayers != 1 ||
+        algo1->inverseFlag != 1 ||
+        algo1->power != 1) {
+        puts("Error: invalid token at index 1.");
+    }
+    algo1 = algorithm_container_get(algo, 2);
+    if (algo1->type != AlgorithmTypeWideTurn ||
+        algo1->contents.wideTurn.face != 'R' ||
+        algo1->contents.wideTurn.numLayers != 12 ||
+        algo1->inverseFlag != 0 ||
+        algo1->power != 15) {
+        puts("Error: invalid token at index 2.");
+    }
+    algo1 = algorithm_container_get(algo, 4);
+    if (algo1->type != AlgorithmTypeWideTurn ||
+        algo1->contents.wideTurn.face != 'R' ||
+        algo1->contents.wideTurn.numLayers != 1 ||
+        algo1->inverseFlag != 1 ||
+        algo1->power != 1) {
+        puts("Error: invalid token at index 4.");
+    }
+    algo1 = algorithm_container_get(algo, 5);
+    if (algo1->type != AlgorithmTypeSlice ||
+        algo1->contents.slice.layer != 'S' ||
+        algo1->inverseFlag != 1 ||
+        algo1->power != 1) {
+        puts("Error: invalid token at index 5.");
+    }
+    
+    Algorithm * nested = algorithm_container_get(algo, 3);
+    if (nested->type != AlgorithmTypeContainer) {
+        puts("Error: invalid type for nested subexpression at index 3.");
+    }
+    if (algorithm_container_count(nested) != 2) {
+        puts("Error: invalid count for nested subexpression.");
+    }
+    if (nested->power != 2) {
+        puts("Error: invalid power on nested subexpression.");
+    }
+    algo1 = algorithm_container_get(nested, 0);
+    if (algo1->type != AlgorithmTypeWideTurn ||
+        algo1->contents.wideTurn.face != 'R' ||
+        algo1->contents.wideTurn.numLayers != 1 ||
+        algo1->inverseFlag != 0 ||
+        algo1->power != 1) {
+        puts("Error: invalid token at subexpression index 0.");
+    }
+    
+    algo1 = algorithm_container_get(nested, 1);
+    if (algo1->type != AlgorithmTypeWideTurn ||
+        algo1->contents.wideTurn.face != 'U' ||
+        algo1->contents.wideTurn.numLayers != 1 ||
+        algo1->inverseFlag != 0 ||
+        algo1->power != 1) {
+        puts("Error: invalid token at subexpression index 1.");
+    }
+    
+    algorithm_free(algo);
     
     test_completed();
 }

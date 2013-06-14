@@ -1,4 +1,5 @@
 #include "algorithm.h"
+#include <ctype.h>
 
 // a token must not include spaces: i.e. 3Rw2, R', M2
 Algorithm * algorithm_for_token(const char * token);
