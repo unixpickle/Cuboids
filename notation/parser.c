@@ -10,6 +10,8 @@ static Algorithm * _token_parse_slice(const char * token,
                                       int prefLen, int suffLen);
 static Algorithm * _token_parse_wide_turn(const char * token,
                                           int prefLen, int suffLen);
+static Algorithm * _token_parse_rotation(const char * token,
+                                         int prefLen, int suffLen);
 
 static Algorithm * _algo_read_nested_tokens(const char * str, int * lenOut);
 static Algorithm * _algo_read_next_token(const char * str, int * lenOut);
@@ -32,6 +34,8 @@ Algorithm * algorithm_for_token(const char * token) {
         return _token_parse_wide_turn(token, numPrefix, numSuffix);
     } else if (type == AlgorithmTypeSlice) {
         return _token_parse_slice(token, numPrefix, numSuffix);
+    } else if (type == AlgorithmTypeRotation) {
+        return _token_parse_rotation(token, numPrefix, numSuffix);
     }
     return NULL;
 }
@@ -77,12 +81,16 @@ static int _token_num_suffix_len(const char * token) {
 static int _token_algo_type(const char name) {
     const char * slices = "MES";
     const char * faces = "RULDFB";
+    const char * rotations = "xyz";
     int i;
     for (i = 0; i < strlen(slices); i++) {
         if (slices[i] == name) return AlgorithmTypeSlice;
     }
     for (i = 0; i < strlen(faces); i++) {
         if (faces[i] == name) return AlgorithmTypeWideTurn;
+    }
+    for (i = 0; i < strlen(rotations); i++) {
+        if (rotations[i] == name) return AlgorithmTypeRotation;
     }
     return -1;
 }
@@ -171,6 +179,29 @@ static Algorithm * _token_parse_wide_turn(const char * token,
     
     return algo;
 }
+
+static Algorithm * _token_parse_rotation(const char * token,
+                                         int prefLen, int suffLen) {
+    if (prefLen > 0) return NULL;
+    int bodyLen = strlen(token) - suffLen;
+    if (bodyLen > 2) return NULL;
+    
+    if (bodyLen == 2) {
+        if (token[1] != '\'') return NULL;
+    }
+    Algorithm * a = algorithm_new_rotation(token[0]);
+    a->inverseFlag = (bodyLen == 2);
+    
+    if (suffLen > 0) {
+        a->power = _parse_number_of_length(&token[strlen(token) - suffLen], suffLen);
+    }
+    
+    return a;
+}
+
+/*********************
+ * Algorithm strings *
+ *********************/
 
 static Algorithm * _algo_read_nested_tokens(const char * str, int * lenOut) {
     Algorithm * container = algorithm_new_container();

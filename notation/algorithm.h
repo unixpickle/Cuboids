@@ -6,6 +6,7 @@
 typedef enum {
     AlgorithmTypeSlice,
     AlgorithmTypeWideTurn,
+    AlgorithmTypeRotation,
     AlgorithmTypeContainer
 } AlgorithmType;
 
@@ -21,6 +22,10 @@ typedef struct {
 } AlgoWideTurn;
 
 typedef struct {
+    char axis;
+} AlgoRotation;
+
+typedef struct {
     int childrenCount;
     void ** children;
 } AlgoContainer;
@@ -31,6 +36,7 @@ typedef struct {
         AlgoSliceTurn slice;
         AlgoWideTurn wideTurn;
         AlgoContainer container;
+        AlgoRotation rotation;
     } contents;
     uint8_t inverseFlag;
     uint8_t power;
@@ -38,6 +44,7 @@ typedef struct {
 
 Algorithm * algorithm_new_slice(char layer);
 Algorithm * algorithm_new_wide_turn(char face, int numLayers);
+Algorithm * algorithm_new_rotation(char axis);
 Algorithm * algorithm_new_container();
 
 void algorithm_container_add(Algorithm * container, Algorithm * a);

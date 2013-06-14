@@ -19,6 +19,15 @@ Algorithm * algorithm_new_wide_turn(char face, int numLayers) {
     return algo;
 }
 
+Algorithm * algorithm_new_rotation(char axis) {
+    Algorithm * algo = (Algorithm *)malloc(sizeof(Algorithm));
+    bzero(algo, sizeof(Algorithm));
+    algo->type = AlgorithmTypeRotation;
+    algo->contents.rotation.axis = axis;
+    algo->power = 1;
+    return algo;
+}
+
 Algorithm * algorithm_new_container() {
     Algorithm * algo = (Algorithm *)malloc(sizeof(Algorithm));
     bzero(algo, sizeof(Algorithm));

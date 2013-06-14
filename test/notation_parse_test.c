@@ -63,13 +63,24 @@ void test_tokens() {
         puts("Error: 13Uw2 processed the wrong power.");
     algorithm_free(upWide);
     
+    Algorithm * rotation = algorithm_for_token("x'3");
+    if (rotation->type != AlgorithmTypeRotation)
+        puts("Error: x'3 processed invalid type.");
+    if (rotation->contents.rotation.axis != 'x')
+        puts("Error: x'3 processed invalid axis.");
+    if (!rotation->inverseFlag)
+        puts("Error: x'3 processed invalid inverse flag.");
+    if (rotation->power != 3)
+        puts("Error: x'3 processed invalid power.");
+    algorithm_free(rotation);
+    
     test_completed();
 }
 
 void test_algorithm() {
     test_initiated("algorithm parser");
     
-    Algorithm * algo = algorithm_for_string("R2 U' 12Rw15 (R U)2 R' S'");
+    Algorithm * algo = algorithm_for_string("R2 U' 12Rw15 (R z2)2 R' S'");
     if (algorithm_container_count(algo) != 6) {
         puts("Error: invalid algorithm token count.");
     }
@@ -134,11 +145,10 @@ void test_algorithm() {
     }
     
     algo1 = algorithm_container_get(nested, 1);
-    if (algo1->type != AlgorithmTypeWideTurn ||
-        algo1->contents.wideTurn.face != 'U' ||
-        algo1->contents.wideTurn.numLayers != 1 ||
+    if (algo1->type != AlgorithmTypeRotation ||
+        algo1->contents.rotation.axis != 'z' ||
         algo1->inverseFlag != 0 ||
-        algo1->power != 1) {
+        algo1->power != 2) {
         puts("Error: invalid token at subexpression index 1.");
     }
     
