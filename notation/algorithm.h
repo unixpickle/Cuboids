@@ -1,3 +1,6 @@
+#ifndef __ALGORITHM_H__
+#define __ALGORITHM_H__
+
 #include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
@@ -53,3 +56,5 @@ Algorithm * algorithm_container_get(Algorithm * container, int index);
 int algorithm_container_count(Algorithm * container);
 
 void algorithm_free(Algorithm * algo);
+
+#endif

@@ -102,17 +102,16 @@ static void _ht_slice_centers(Cuboid * out, CuboidMovesAxis axis, int layer) {
     SliceMap map = cuboid_moves_slice_map(axis);
     int i, j;
     for (i = 0; i < 4; i++) {
-        int side = map.centers[i];
-        int oppositeSide = map.centers[i < 2 ? i + 2 : i - 2];
+        int oppSideIndex = i < 2 ? i + 2 : i - 2;
         int lineLength = cuboid_slice_center_line_length(out->dimensions, map, i);
         for (j = 0; j < lineLength; j++) {
             int myIndex = cuboid_slice_center_line_index(out->dimensions, map,
-                                                         side, layer, j);
+                                                         i, layer, j);
             int oppIndex = cuboid_slice_center_line_index(out->dimensions, map,
-                                                          oppositeSide, layer, j);
-            int writeIndex = cuboid_center_index(out, side, myIndex);
+                                                          oppSideIndex, layer, j);
+            int writeIndex = cuboid_center_index(out, map.centers[i], myIndex);
             CuboidCenter c;
-            c.side = oppositeSide;
+            c.side = map.centers[oppSideIndex];
             c.index = oppIndex;
             out->centers[writeIndex] = c;
         }

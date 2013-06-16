@@ -1,4 +1,5 @@
 #include "stickers/mapconversion.h"
+#include "representation/cuboid_htmoves.h"
 #include "test.h"
 
 void test_3x3x3_from_stickers();

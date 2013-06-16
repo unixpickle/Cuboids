@@ -63,8 +63,8 @@ void qt_rotate_center_point(int face, int * x, int * y) {
 
 int ht_center_point_to_index(int w, int h, int x, int y) {
     int xOffset = x + w / 2, yOffset = -y + h / 2;
-    if (w % 2 == 0 && x > w / 2) xOffset -= 1;
-    if (h % 2 == 0 && y > h / 2) yOffset -= 1;
+    if (w % 2 == 0 && xOffset > w / 2) xOffset -= 1;
+    if (h % 2 == 0 && yOffset > h / 2) yOffset -= 1;
     return xOffset + yOffset * w;
 }
 

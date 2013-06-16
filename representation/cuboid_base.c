@@ -249,11 +249,11 @@ static void _multiply_edges(Cuboid * out, const Cuboid * left, const Cuboid * ri
 }
 
 static void _multiply_centers(Cuboid * out, const Cuboid * left, const Cuboid * right) {
-    // this is the simple composition operation on a permutation ;)
-    
+    // this is the simple composition operation on a permutation ;)/
     int i, centerCount = cuboid_count_centers(left);
     for (i = 0; i < centerCount; i++) {
         CuboidCenter leftCenter = left->centers[i];
+                
         int rightIndex = cuboid_center_index(right,
                                              leftCenter.side,
                                              leftCenter.index);
