@@ -95,13 +95,42 @@ typedef struct {
     BSSearchState * saveData;
 } BSSearchContext;
 
+/**
+ * Initializes a search in the background and returns a search context
+ * @return The returned context must be released with bs_context_release().
+ */
 BSSearchContext * bs_run(BSSettings settings, BSCallbacks callbacks);
+
+/**
+ * Initializes a search in the background using a saved search state.
+ * @argument state The state to restore from. Ownership of the state
+ * is transfered to the search context, so the caller should no longer
+ * access or free the state after calling bs_resume().
+ * @return See bs_run return value.
+ */
 BSSearchContext * bs_resume(BSSearchState * state, BSCallbacks callbacks);
 
 void bs_context_retain(BSSearchContext * context);
 void bs_context_release(BSSearchContext * context);
+
+/**
+ * Sends a search context the message to halt. This function
+ * will block until the search context has terminated all its
+ * background threads.
+ */
 void bs_context_stop(BSSearchContext * context, int save);
+
+/**
+ * Returns the progress of a search context. This function is
+ * completely synchronized, so don't worry about incorrect data.
+ * or calling from multiple threads.
+ */
 BSProgress bs_context_progress(BSSearchContext * context);
+
+/**
+ * Returns the current depth of a search context. This increments
+ * as the IDA* search deepens.
+ */
 int bs_context_current_depth(BSSearchContext * context);
 int bs_context_is_stopped(BSSearchContext * context);
 int bs_context_should_save(BSSearchContext * context);

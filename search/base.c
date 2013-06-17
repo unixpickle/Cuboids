@@ -273,7 +273,9 @@ static void * _bs_run_dispatch(void * _context) {
     BSSearchState * state = _bs_search_state_create(context);
     int depth, i;
     for (depth = context->currentDepth; depth <= context->settings.maxDepth; depth++) {
+        pthread_mutex_lock(&context->mutex);
         context->currentDepth = depth;
+        pthread_mutex_unlock(&context->mutex);
         context->callbacks.handle_depth_increase(context->callbacks.userData, depth);
         
         // generate the threads and run them
@@ -326,6 +328,9 @@ static void * _bs_resume_dispatch(void * _context) {
     state->progress = lastState->progress;
     state->depth = lastState->depth;
     int i;
+    
+    context->callbacks.handle_depth_increase(context->callbacks.userData, depth);
+    
     for (i = 0; i < threadCount; i++) {
         BSThreadState * ts = lastState->states[i];
         BSThreadContext * ctx = _bs_thread_context_load(ts, depth, context);
@@ -346,7 +351,9 @@ static void * _bs_resume_dispatch(void * _context) {
     // return control over to the main search dispatch.
     if (!bs_context_is_stopped(context)) {
         bs_search_state_free(state);
+        pthread_mutex_lock(&context->mutex);
         context->currentDepth++;
+        pthread_mutex_unlock(&context->mutex);
         return _bs_run_dispatch(_context);
     }
     
