@@ -8,6 +8,7 @@ typedef struct {
 static volatile unsigned long long nodeCount = 0;
 
 void test_pause_resume();
+void test_excessive_threads();
 
 BSCallbacks generate_callbacks();
 
@@ -20,7 +21,12 @@ void cb_handle_progress_update(void * data);
 
 
 int main() {
+    int i;
+    for (i = 0; i < 5; i++) {
+    test_excessive_threads();
     test_pause_resume();
+    }
+    
     
     tests_completed();
     return 0;
@@ -40,6 +46,8 @@ void test_pause_resume() {
     bzero(&data, sizeof(data));
     BSCallbacks callbacks = generate_callbacks();
     callbacks.userData = &data;
+    
+    nodeCount = 0;
     
     BSSearchContext * context = bs_run(settings, callbacks);
     while (!bs_context_is_stopped(context)) {
@@ -72,6 +80,37 @@ void test_pause_resume() {
         printf("Error: expected 15943877550 nodes but got %lld.\n", nodeCount);
     }
     
+    test_completed();
+}
+
+void test_excessive_threads() {
+    test_initiated("excessive threads");
+    
+    BSSettings settings;
+    settings.operationCount = 20;
+    settings.threadCount = 50;
+    settings.minDepth = 1;
+    settings.maxDepth = 6;
+    settings.nodeInterval = 1000000;
+    
+    CbData data;
+    bzero(&data, sizeof(data));
+    BSCallbacks callbacks = generate_callbacks();
+    callbacks.userData = &data;
+    
+    nodeCount = 0;
+    
+    BSSearchContext * context;
+    context = bs_run(settings, callbacks);
+    while (!bs_context_is_stopped(context)) {
+        sleep(1);
+    }
+    
+    if (nodeCount != 67368420L) {
+        printf("Error: expected 15943877550 nodes but got %lld.\n", nodeCount);
+    }
+    
+    bs_context_release(context);
     test_completed();
 }
 
