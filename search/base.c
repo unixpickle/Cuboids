@@ -13,6 +13,7 @@ typedef struct {
 } BSThreadContext;
 
 static BSThreadContext * _bs_thread_context_create(SRange range, int depth, BSSearchContext * context);
+static BSThreadContext * _bs_thread_context_load(BSThreadState * save, int depth, BSSearchContext * ctx);
 static BSThreadState * _bs_thread_context_save(BSThreadContext * context);
 static void _bs_thread_context_free(BSThreadContext * context);
 
@@ -34,7 +35,13 @@ BSSearchContext * bs_run(BSSettings settings, BSCallbacks callbacks) {
     context->settings = settings;
     context->callbacks = callbacks;
     context->currentDepth = settings.minDepth;
-    pthread_mutex_init(&context->mutex, NULL);
+    context->isRunning = 1;
+    
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&context->mutex, &attr);
+    pthread_mutexattr_destroy(&attr);
     
     pthread_create(&context->dispatchThread, NULL, &_bs_run_dispatch, context);
     
@@ -50,7 +57,13 @@ BSSearchContext * bs_resume(BSSearchState * state, BSCallbacks callbacks) {
     context->saveData = state;
     context->currentDepth = state->depth;
     context->progress = state->progress;
-    pthread_mutex_init(&context->mutex, NULL);
+    context->isRunning = 1;
+    
+    pthread_mutexattr_t attr;
+    pthread_mutexattr_init(&attr);
+    pthread_mutexattr_settype(&attr, PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&context->mutex, &attr);
+    pthread_mutexattr_destroy(&attr);
     
     pthread_create(&context->dispatchThread, NULL, &_bs_resume_dispatch, context);
     
@@ -174,6 +187,21 @@ static BSThreadContext * _bs_thread_context_create(SRange range, int depth,
     return tc;
 }
 
+static BSThreadContext * _bs_thread_context_load(BSThreadState * save, int depth,
+                                                 BSSearchContext * ctx) {
+    SRange range;
+    sboundary_copy(&range.lower, save->range.lower);
+    sboundary_copy(&range.upper, save->range.upper);
+    
+    BSThreadContext * tc = (BSThreadContext *)malloc(sizeof(BSThreadContext));
+    bzero(tc, sizeof(BSThreadContext));
+    tc->sequence = (int *)malloc(sizeof(int) * depth);
+    tc->depth = depth;
+    tc->context = ctx;
+    tc->range = range;
+    return tc;
+}
+
 static BSThreadState * _bs_thread_context_save(BSThreadContext * context) {
     assert(context->depth == context->range.upper.length);
     assert(context->depth == context->range.lower.length);
@@ -244,7 +272,7 @@ static void * _bs_run_dispatch(void * _context) {
     
     BSSearchState * state = _bs_search_state_create(context);
     int depth, i;
-    for (depth = context->currentDepth; depth < context->settings.maxDepth; depth++) {
+    for (depth = context->currentDepth; depth <= context->settings.maxDepth; depth++) {
         context->currentDepth = depth;
         context->callbacks.handle_depth_increase(context->callbacks.userData, depth);
         
@@ -277,6 +305,8 @@ static void * _bs_run_dispatch(void * _context) {
 
     free(threads);
     free(ranges);    
+    
+    bs_context_stop(context, 0);
     context->callbacks.handle_search_complete(context->callbacks.userData);
     bs_context_release(context);
     
@@ -298,7 +328,7 @@ static void * _bs_resume_dispatch(void * _context) {
     int i;
     for (i = 0; i < threadCount; i++) {
         BSThreadState * ts = lastState->states[i];
-        BSThreadContext * ctx = _bs_thread_context_create(ts->range, depth, context);
+        BSThreadContext * ctx = _bs_thread_context_load(ts, depth, context);
         pthread_create(&threads[i], NULL, &_bs_search_thread, ctx);
     }
     for (i = 0; i < threadCount; i++) {
@@ -324,6 +354,8 @@ static void * _bs_resume_dispatch(void * _context) {
         context->callbacks.handle_save_data(context->callbacks.userData,
                                             state);
     } else bs_search_state_free(state);
+    
+    bs_context_stop(context, 0);
     context->callbacks.handle_search_complete(context->callbacks.userData);
     bs_context_release(context);
     
@@ -350,7 +382,8 @@ static void * _bs_search_thread(void * threadContext) {
 static int _bs_recursive_search(BSThreadContext * context) {
     BSCallbacks callbacks = context->context->callbacks;
     if (context->currentDepth == context->depth) {
-        if (!_bs_recursive_search_hit_base(context)) return 0;
+        context->nodeCount++;
+        return _bs_recursive_search_hit_base(context);
     }
     if (!callbacks.should_expand(callbacks.userData,
                                  context->sequence, context->currentDepth,
@@ -392,9 +425,11 @@ static int _bs_recursive_search_progress_update(BSThreadContext * _context) {
     }
     context->progress.nodesExpanded += _context->nodeCount;
     context->progress.nodesPruned += _context->pruneCount;
-    pthread_mutex_unlock(&context->mutex);
+    _context->nodeCount = 0;
+    _context->pruneCount = 0;
     
     BSCallbacks callbacks = context->callbacks;
     callbacks.handle_progress_update(callbacks.userData);
+    pthread_mutex_unlock(&context->mutex);
     return 1;
 }
