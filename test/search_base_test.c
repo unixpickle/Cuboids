@@ -21,12 +21,8 @@ void cb_handle_progress_update(void * data);
 
 
 int main() {
-    int i;
-    for (i = 0; i < 5; i++) {
     test_excessive_threads();
-    test_pause_resume();
-    }
-    
+    test_pause_resume();    
     
     tests_completed();
     return 0;
