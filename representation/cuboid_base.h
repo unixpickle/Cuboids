@@ -101,6 +101,7 @@ void cuboid_free(Cuboid * cuboid);
 void cuboid_multiply(Cuboid * out, const Cuboid * left, const Cuboid * right);
 void cuboid_multiply_to(const Cuboid * left, Cuboid * right);
 Cuboid * cuboid_copy(const Cuboid * cuboid);
+void cuboid_copy_to(Cuboid * copy, const Cuboid * cuboid);
 
 uint16_t cuboid_edge_index(const Cuboid * cuboid, int dedge, int edge);
 uint16_t cuboid_center_index(const Cuboid * cuboid, int face, int index);

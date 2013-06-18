@@ -28,13 +28,16 @@ typedef struct {
     void * userData;
     
     // called whenever the search reaches a node of the current depth
-    void (*handle_reached_node)(void * data, const int * sequence, int depth);
+    void (*handle_reached_node)(void * data, const int * sequence,
+                                int depth, int threadIndex);
     
-    // called to indicate a depth increase
+    // called to indicate a depth increase; the search thread waits on the return
+    // of this function to begin its search.
     void (*handle_depth_increase)(void * data, int depth);
     
     // called to verify if a sequence should be expanded to achieve a certain death
-    int (*should_expand)(void * data, const int * sequence, int len, int depth);
+    int (*should_expand)(void * data, const int * sequence, int len,
+                         int depth, int threadIndex);
     
     // called to give the delegate save data
     void (*handle_save_data)(void * data, void * save); // save will be a BSSearchState

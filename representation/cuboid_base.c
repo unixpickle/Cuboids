@@ -93,6 +93,25 @@ Cuboid * cuboid_copy(const Cuboid * cuboid) {
     return copy;
 }
 
+void cuboid_copy_to(Cuboid * copy, const Cuboid * cuboid) {
+    assert(cuboid_dimensions_equal(copy->dimensions, cuboid->dimensions));
+    int centerCount = cuboid_count_centers(copy);
+    int edgeCount = cuboid_count_edges(copy);
+    
+    memcpy(copy->corners, cuboid->corners,
+           sizeof(CuboidCorner) * 8);
+          
+    if (edgeCount > 0) {
+        memcpy(copy->edges, cuboid->edges,
+               sizeof(CuboidEdge) * edgeCount);
+    }
+    
+    if (centerCount > 0) {
+        memcpy(copy->centers, cuboid->centers,
+               sizeof(CuboidCenter) * centerCount);
+    }
+}
+
 /**************
  * Addressing *
  **************/

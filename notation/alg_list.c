@@ -3,6 +3,7 @@
 AlgList * alg_list_create() {
     AlgList * list = (AlgList *)malloc(sizeof(AlgList));
     bzero(list, sizeof(AlgList));
+    list->retainCount = 1;
     return list;
 }
 
@@ -10,14 +11,16 @@ void alg_list_add(AlgList * list, AlgListEntry entry) {
     if (!list->entries) {
         list->entries = (AlgListEntry *)malloc(sizeof(AlgListEntry));
     } else {
-        int newSize = sizeof(AlgListEntry) * list->entryCount;
+        int newSize = sizeof(AlgListEntry) * (list->entryCount + 1);
         list->entries = (AlgListEntry *)realloc(list->entries, newSize);
     }
     list->entries[list->entryCount] = entry;
     list->entryCount++;
 }
 
-void alg_list_free(AlgList * list) {
+void alg_list_release(AlgList * list) {
+    list->retainCount--;
+    if (list->retainCount > 0) return;
     int i;
     for (i = 0; i < list->entryCount; i++) {
         algorithm_free(list->entries[i].algorithm);
@@ -25,6 +28,10 @@ void alg_list_free(AlgList * list) {
     }
     if (list->entries) free(list->entries);
     free(list);
+}
+
+void alg_list_retain(AlgList * list) {
+    list->retainCount++;
 }
 
 AlgList * alg_list_parse(const char * buffer, CuboidDimensions dims) {
@@ -40,7 +47,7 @@ AlgList * alg_list_parse(const char * buffer, CuboidDimensions dims) {
         if (buffer[i] == ',' && strlen(tmpBuffer) > 0) {
             Algorithm * algo = algorithm_for_string(tmpBuffer);
             if (!algo) {
-                alg_list_free(list);
+                alg_list_release(list);
                 free(tmpBuffer);
                 return NULL;
             }
@@ -51,6 +58,7 @@ AlgList * alg_list_parse(const char * buffer, CuboidDimensions dims) {
             alg_list_add(list, e);
             tmpBuffer[0] = 0;
         } else {
+            tmpBuffer[strlen(tmpBuffer) + 1] = 0;
             tmpBuffer[strlen(tmpBuffer)] = buffer[i];
         }
     }
@@ -59,7 +67,7 @@ AlgList * alg_list_parse(const char * buffer, CuboidDimensions dims) {
     if (strlen(tmpBuffer) > 0) {
         Algorithm * algo = algorithm_for_string(tmpBuffer);
         if (!algo) {
-            alg_list_free(list);
+            alg_list_release(list);
             free(tmpBuffer);
             return NULL;
         }
@@ -69,6 +77,8 @@ AlgList * alg_list_parse(const char * buffer, CuboidDimensions dims) {
         e.cuboid = cuboid;
         alg_list_add(list, e);
     }
+    
+    free(tmpBuffer);
     
     return list;
 }

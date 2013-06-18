@@ -6,6 +6,7 @@ typedef struct {
     
     unsigned long long nodeCount;
     unsigned long long pruneCount;
+    unsigned int threadIndex;
     
     int * sequence;
     int currentDepth;
@@ -284,6 +285,7 @@ static void * _bs_run_dispatch(void * _context) {
         for (i = 0; i < count; i++) {
             SRange range = ranges[i];
             BSThreadContext * tc = _bs_thread_context_create(range, depth, context);
+            tc->threadIndex = i;
             pthread_create(&threads[i], NULL, &_bs_search_thread, tc);
         }
         for (i = 0; i < count; i++) {
@@ -334,6 +336,7 @@ static void * _bs_resume_dispatch(void * _context) {
     for (i = 0; i < threadCount; i++) {
         BSThreadState * ts = lastState->states[i];
         BSThreadContext * ctx = _bs_thread_context_load(ts, depth, context);
+        ctx->threadIndex = i;
         pthread_create(&threads[i], NULL, &_bs_search_thread, ctx);
     }
     for (i = 0; i < threadCount; i++) {
@@ -394,7 +397,7 @@ static int _bs_recursive_search(BSThreadContext * context) {
     }
     if (!callbacks.should_expand(callbacks.userData,
                                  context->sequence, context->currentDepth,
-                                 context->depth)) {
+                                 context->depth, context->threadIndex)) {
         context->pruneCount++;
         return 1;
     }
@@ -419,7 +422,7 @@ static int _bs_recursive_search(BSThreadContext * context) {
 static int _bs_recursive_search_hit_base(BSThreadContext * context) {
     BSCallbacks callbacks = context->context->callbacks;
     callbacks.handle_reached_node(callbacks.userData, context->sequence,
-                                  context->currentDepth);
+                                  context->currentDepth, context->threadIndex);
     return 1;
 }
 

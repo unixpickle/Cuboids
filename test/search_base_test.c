@@ -12,10 +12,10 @@ void test_excessive_threads();
 
 BSCallbacks generate_callbacks();
 
-void cb_reached_node_counter(void * cbPtr, const int * seq, int depth);
+void cb_reached_node_counter(void * cbPtr, const int * seq, int depth, int th);
 void cb_handle_depth_increase(void * data, int depth);
 void cb_handle_search_complete(void * data);
-int cb_should_expand(void * data, const int * seq, int len, int depth);
+int cb_should_expand(void * data, const int * seq, int len, int depth, int th);
 void cb_handle_save_data(void * data, void * save);
 void cb_handle_progress_update(void * data);
 
@@ -122,7 +122,7 @@ BSCallbacks generate_callbacks() {
     return callbacks;
 }
 
-void cb_reached_node_counter(void * cbPtr, const int * seq, int depth) {
+void cb_reached_node_counter(void * cbPtr, const int * seq, int depth, int th) {
     unsigned long long count = __sync_add_and_fetch(&nodeCount, 1);
 }
 
@@ -134,7 +134,7 @@ void cb_handle_search_complete(void * data) {
     
 }
 
-int cb_should_expand(void * data, const int * seq, int len, int depth) {
+int cb_should_expand(void * data, const int * seq, int len, int depth, int th) {
     return 1;
 }
 
