@@ -24,7 +24,7 @@ CLArgument * cl_argument_new_integer(const char * name, int value) {
 }
 
 CLArgument * cl_argument_new_string(const char * name, const char * value) {
-    CLArgument * arg = cl_argument_new(name, CLArgumentTypeInteger);
+    CLArgument * arg = cl_argument_new(name, CLArgumentTypeString);
     arg->contents.string.value = (char *)malloc(strlen(value) + 1);
     strcpy(arg->contents.string.value, value);
     return arg;
