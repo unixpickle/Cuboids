@@ -384,6 +384,9 @@ static void * _bs_search_thread(void * threadContext) {
         saveState = _bs_thread_context_save(context);
     }
     
+    // make sure the BSProgress is completely accurate
+    _bs_recursive_search_progress_update(context);
+    
     _bs_thread_context_free(context);
     pthread_exit(saveState);
     return saveState;

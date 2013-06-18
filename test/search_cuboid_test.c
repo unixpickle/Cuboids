@@ -57,12 +57,16 @@ void test_solve_3x3() {
             break;
         }
     }
+    
+    BSProgress progress = bs_context_progress(search->bsContext);
     cs_context_release(search);
     
     int magicalSequence[5] = {2, 13, 11, 5, 12};
     if (memcmp(solution, magicalSequence, 5) != 0) {
         puts("Error: solution does not match correct one.");
     }
+    
+    printf("Stats: nodesExpanded = %lld\n", progress.nodesExpanded);
     
     if (cubesFound != 2000718) {
         printf("Error: found %lld cubes, expected 2000718.\n", cubesFound);
