@@ -1,13 +1,18 @@
 SOURCE_DIRS=representation stickers algebra notation search arguments
 
-all:
+all: solver
+
+test: libs
+	cd test && $(MAKE)
+
+solver: libs
+	cd solver && $(MAKE)
+
+libs:
 	for dir in $(SOURCE_DIRS); do \
 		cd $$dir && $(MAKE); \
 		cd ..; \
 	done
-
-test: all
-	cd test && $(MAKE)
 
 clean:
 	for dir in $(SOURCE_DIRS); do \
@@ -15,3 +20,4 @@ clean:
 		cd ..; \
 	done
 	cd test && $(MAKE) clean
+	cd solver && $(MAKE) clean
