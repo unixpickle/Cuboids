@@ -13,14 +13,14 @@ Here are the primary source directories and their significance:
  * `test/` the unit tests for the entire project.
  * `algebra/` this is used to detect if various parts of the cube are solved. It also serves for algebra operations like inverses.
  * `notation/` this is my implementation of an extended WCA move notation.
- * `search/` this is my *search engine* for exploring cube permutations on multiple threads.
+ * `search/` the *search engine* for exploring cube permutations on multiple threads.
+ * `arguments/` a command-line argument parser which will be useful throughout this project.
 
 General Todos
 =============
 
 I plan on implementing these features in the following order:
 
- * A standard cuboid basis generator.
  * A command-line interface to call upon different *solvers* and provide arguments.
  * A heuristic indexer with full support for plugins, symmetries, and control over cuboid operations.
  * A heuristic searcher which will allow easy integration into the cuboid searcher.
