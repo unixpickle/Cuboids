@@ -2,6 +2,7 @@
 #include "search/cuboid.h"
 #include "stickers/mapconversion.h"
 #include "algebra/sticker_algebra.h"
+#include "algebra/idcache.h"
 
 static int solution[16];
 static volatile unsigned long long cubesFound;
@@ -33,17 +34,21 @@ void test_solve_3x3() {
     CSCallbacks callbacks;
     BSSettings bsSettings;
     
+    // these two arguments are consumed and freed by the solver
     settings.rootNode = solveMe;
     settings.algorithms = list;
-    settings.cacheStickerMaps = 1;
+    settings.cacheStickerMaps = 0;
     
     bsSettings.threadCount = 8;
     bsSettings.minDepth = 1;
     bsSettings.maxDepth = 5;
     bsSettings.nodeInterval = 1000000;
     
+    IdCache * cache = id_cache_create(dims);
+    
     bzero(&callbacks, sizeof(callbacks));
     callbacks.handle_cuboid = handle_cuboid;
+    callbacks.userData = cache;
     
     CSSearchContext * search = cs_run(settings, bsSettings, callbacks);
     while (1) {
@@ -63,21 +68,18 @@ void test_solve_3x3() {
         printf("Error: found %lld cubes, expected 2000718.\n", cubesFound);
     }
     
+    id_cache_free(cache);
     test_completed();
 }
 
-void handle_cuboid(void * data, Cuboid * cuboid, StickerMap * cache,
+void handle_cuboid(void * data, Cuboid * cuboid, StickerMap * _cache,
                    const int * sequence, int len) {
     __sync_add_and_fetch(&cubesFound, 1);
+    assert(!_cache);
     
-    convert_cb_to_sm(cache, cuboid);
-    int i, isSolved = 1;
-    for (i = 1; i <= 6; i++) {
-        if (!stickermap_face_is_solid_color(cache, i)) {
-            isSolved = 0;
-            break;
-        }
-    }
+    IdCache * cache = (IdCache *)data;
+    int isSolved = id_cache_contains(cache, cuboid);
+    
     if (isSolved) {
         memcpy(solution, sequence, len * sizeof(int));
     }

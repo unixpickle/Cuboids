@@ -117,6 +117,13 @@ void cuboid_copy_to(Cuboid * copy, const Cuboid * cuboid) {
  **************/
 
 uint16_t cuboid_edge_index(const Cuboid * cuboid, int dedge, int edge) {
+    // optimized for cubic cuboids
+    if (cuboid->dimensions.x == cuboid->dimensions.y &&
+        cuboid->dimensions.y == cuboid->dimensions.z) {
+        int edgeSize = cuboid->dimensions.x - 2;
+        return dedge * edgeSize + edge;
+    }
+    
     int absEdgeIndex = 0, i;
     for (i = 0; i < dedge; i++) {
         absEdgeIndex += cuboid_count_edges_for_dedge(cuboid, i);
@@ -126,6 +133,13 @@ uint16_t cuboid_edge_index(const Cuboid * cuboid, int dedge, int edge) {
 }
 
 uint16_t cuboid_center_index(const Cuboid * cuboid, int face, int index) {
+    // optimized for cubic cuboids
+    if (cuboid->dimensions.x == cuboid->dimensions.y &&
+        cuboid->dimensions.y == cuboid->dimensions.z) {
+        int centerSize = (cuboid->dimensions.x - 2) * (cuboid->dimensions.x - 2);
+        return (face - 1) * centerSize + index;
+    }
+    
     int absCenterIndex = 0, i;
     for (i = 1; i < face; i++) {
         absCenterIndex += cuboid_count_centers_for_face(cuboid, i);
