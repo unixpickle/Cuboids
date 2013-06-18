@@ -1,4 +1,4 @@
-SOURCE_DIRS=representation stickers algebra notation search
+SOURCE_DIRS=representation stickers algebra notation search arguments
 
 all:
 	for dir in $(SOURCE_DIRS); do \
