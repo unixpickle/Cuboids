@@ -1,9 +1,9 @@
-#include "arguments/parser.h"
-#include "notation/alg_list.h"
-#include "search/cuboid.h"
+#include "solvers.h"
+#include <stdio.h>
+
 
 int main(int argc, const char * argv[]) {
-    
+    puts("Hello, world!");
     
     return 0;
 }
