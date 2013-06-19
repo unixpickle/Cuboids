@@ -1,15 +1,27 @@
 #include "saving/save_cuboid.h"
 #include "saving/save_algorithm.h"
+#include "saving/save_search.h"
 #include "notation/cuboid.h"
 #include "notation/parser.h"
 #include "test.h"
 
 void test_save_cuboid();
 void test_save_algorithm();
+void test_save_base_search();
+void test_save_cuboid_search();
+
+BSSearchState * generate_bs_search_state();
+void test_base_state_equality(BSSearchState * s1, BSSearchState * s2);
+void test_cuboid_state_equality(CSSearchState * s1, CSSearchState * s2);
+void test_srange_equality(SRange r1, SRange r2);
+void test_cuboid_equality(Cuboid * c1, Cuboid * c2);
+int test_algorithm_equality(Algorithm * a1, Algorithm * a2);
 
 int main() {
     test_save_cuboid();
     test_save_algorithm();
+    test_save_base_search();
+    test_save_cuboid_search();
     
     tests_completed();
     return 0;
@@ -34,8 +46,220 @@ void test_save_cuboid() {
         puts("Error: failed to load cuboid at all!");
     }
     
-    if (!cuboid_dimensions_equal(cb->dimensions, cuboid->dimensions)) {
-        puts("Error: the dimensions do not match.");
+    test_cuboid_equality(cb, cuboid);
+    
+    cuboid_free(cb);
+    cuboid_free(cuboid);
+    test_completed();
+}
+
+void test_save_algorithm() {
+    test_initiated("save_algorithm");
+    
+    Algorithm * algo = algorithm_for_string("R Uw 2Fw3 D' M2 x L2 y' z2");
+    
+    FILE * temp = tmpfile();
+    assert(temp != NULL);
+    
+    save_algorithm(algo, temp);
+    fseek(temp, 0, SEEK_SET);
+    Algorithm * loaded = load_algorithm(temp);
+    
+    if (!loaded) {
+        puts("Error: failed to load algorithm at all!");
+    }
+    if (loaded->type != AlgorithmTypeContainer) {
+        puts("Error: invalid type for loaded algorithm.");
+    }
+    
+    test_algorithm_equality(algo, loaded);
+    
+    fclose(temp);
+    
+    algorithm_free(algo);
+    algorithm_free(loaded);
+    test_completed();
+}
+
+void test_save_base_search() {
+    test_initiated("save_base_search");
+    
+    BSSearchState * state = generate_bs_search_state();
+    FILE * temp = tmpfile();
+    assert(temp != NULL);
+    
+    save_base_search(state, temp);
+    fseek(temp, 0, SEEK_SET);
+    BSSearchState * loaded = load_base_search(temp);
+    
+    if (loaded) {
+        test_base_state_equality(state, loaded);
+        bs_search_state_free(loaded);
+    } else {
+        puts("Error: failed to load!");
+    }
+    
+    fclose(temp);
+    bs_search_state_free(state);
+    test_completed();
+}
+
+void test_save_cuboid_search() {
+    test_initiated("save_cuboid_search");
+    
+    FILE * temp = tmpfile();
+    assert(temp != NULL);
+    BSSearchState * bsState = generate_bs_search_state();
+    CSSearchState * state = (CSSearchState *)malloc(sizeof(CSSearchState));
+    state->bsState = bsState;
+    
+    CuboidDimensions dims = {5, 6, 6};
+    Algorithm * testAlgo = algorithm_for_string("Lw R2 U2 3Dw2 L'");
+    state->settings.rootNode = algorithm_to_cuboid(testAlgo, dims);
+    algorithm_free(testAlgo);
+    state->settings.algorithms = alg_list_parse("R,L,Uw2,Dw2,Fw2,Bw2", dims);
+    
+    save_cuboid_search(state, temp);
+    fseek(temp, 0, SEEK_SET);
+    CSSearchState * loaded = load_cuboid_search(temp);
+    if (loaded) {
+        test_cuboid_state_equality(loaded, state);
+        cs_search_state_free(loaded);
+    } else {
+        puts("Error: failed to load search state.");
+    }
+    
+    cs_search_state_free(state);
+    fclose(temp);
+    test_completed();
+}
+
+BSSearchState * generate_bs_search_state() {
+    BSSearchState * state = (BSSearchState *)malloc(sizeof(BSSearchState));
+    SBoundary b1, b2, b3, b4;
+    sboundary_initialize(&b1, 5, 6);
+    sboundary_initialize(&b2, 5, 6);
+    sboundary_initialize(&b3, 5, 6);
+    sboundary_initialize(&b4, 5, 6);
+    
+    int data1[5] = {0, 0, 0, 0};
+    int data2[5] = {3, 0, 0, 1};
+    int data3[5] = {3, 0, 0, 1};
+    int data4[5] = {6, 0, 0, 0};
+    memcpy(b1.sequence, data1, sizeof(int) * 5);
+    memcpy(b2.sequence, data2, sizeof(int) * 5);
+    memcpy(b3.sequence, data3, sizeof(int) * 5);
+    memcpy(b4.sequence, data4, sizeof(int) * 5);
+    
+    BSThreadState * th1 = (BSThreadState *)malloc(sizeof(BSThreadState));
+    BSThreadState * th2 = (BSThreadState *)malloc(sizeof(BSThreadState));
+    
+    th1->range.lower = b1;
+    th1->range.upper = b2;
+    th2->range.lower = b3;
+    th2->range.upper = b4;
+    
+    state->threadCount = 2;
+    state->states = (BSThreadState **)malloc(sizeof(void *) * 2);
+    state->states[0] = th1;
+    state->states[1] = th2;
+    
+    state->depth = 13;
+    
+    BSSettings dummySettings;
+    BSProgress dummyProgress;
+    
+    dummySettings.operationCount = 18;
+    dummySettings.threadCount = 10;
+    dummySettings.minDepth = 2;
+    dummySettings.maxDepth = 10;
+    dummySettings.nodeInterval = 1000000;
+    
+    dummyProgress.nodesExpanded = 1000000L;
+    dummyProgress.nodesPruned = 1000000000L;
+    state->settings = dummySettings;
+    state->progress = dummyProgress;
+    
+    return state;
+}
+
+void test_base_state_equality(BSSearchState * s1, BSSearchState * s2) {
+    if (s1->threadCount != s2->threadCount) {
+        puts("Error: thread counts differ.");
+        return;
+    }
+    int i, j;
+    for (i = 0; i < s1->threadCount; i++) {
+        BSThreadState * th1 = s1->states[i];
+        BSThreadState * th2 = s2->states[i];
+        test_srange_equality(th1->range, th2->range);
+    }
+    if (s1->depth != s2->depth) {
+        puts("Error: depths differ.");
+    }
+    if (s1->settings.minDepth != s2->settings.minDepth) {
+        puts("Error: minDepth differs.");
+    }
+    if (s1->settings.maxDepth != s2->settings.maxDepth) {
+        puts("Error: maxDepth differs.");
+    }
+    if (s1->settings.operationCount != s2->settings.operationCount) {
+        puts("Error: operationCount differs.");
+    }
+    if (s1->settings.nodeInterval != s2->settings.nodeInterval) {
+        puts("Error: nodeInterval differs.");
+    }
+    if (s1->settings.threadCount != s2->settings.threadCount) {
+        puts("Error: settings.threadCount differs.");
+    }
+    if (s1->progress.nodesExpanded != s2->progress.nodesExpanded) {
+        puts("Error: nodesExpanded differs.");
+    }
+    if (s1->progress.nodesPruned != s2->progress.nodesPruned) {
+        puts("Error: nodesExpanded differs.");
+    }
+}
+
+void test_cuboid_state_equality(CSSearchState * s1, CSSearchState * s2) {
+    test_base_state_equality(s1->bsState, s2->bsState);
+    test_cuboid_equality(s1->settings.rootNode, s2->settings.rootNode);
+    if (s1->settings.algorithms->entryCount != s2->settings.algorithms->entryCount) {
+        puts("Error: algorithm counts don't match.");
+        return;
+    }
+    int i;
+    for (i = 0; i < s1->settings.algorithms->entryCount; i++) {
+        AlgListEntry e1 = s1->settings.algorithms->entries[i];
+        AlgListEntry e2 = s2->settings.algorithms->entries[i];
+        test_cuboid_equality(e1.cuboid, e2.cuboid);
+        test_algorithm_equality(e1.algorithm, e2.algorithm);
+    }
+}
+
+void test_srange_equality(SRange r1, SRange r2) {
+    if (r1.lower.length != r2.lower.length || r1.upper.length != r2.upper.length) {
+        puts("Error: range counts don't match.");
+        return;
+    }
+    if (r1.upper.length != r1.lower.length) {
+        puts("Error: upper and lower counts much match.");
+        return;
+    }
+    int i;
+    for (i = 0; i < r1.lower.length; i++) {
+        if (r1.lower.sequence[i] != r2.lower.sequence[i]) {
+            printf("Error: range lower differs at index %d.\n", i);
+        }
+        if (r1.upper.sequence[i] != r2.upper.sequence[i]) {
+            printf("Error: range upper differs at index %d.\n", i);
+        }
+    }
+}
+
+void test_cuboid_equality(Cuboid * cuboid, Cuboid * cb) {
+    if (!cuboid_dimensions_equal(cuboid->dimensions, cb->dimensions)) {
+        puts("Error: cuboid dimensions are not equal");
+        return;
     }
     
     int i, j;
@@ -69,43 +293,26 @@ void test_save_cuboid() {
             printf("Error: corner mismatch at %d.\n", i);
         }
     }
-    
-    cuboid_free(cb);
-    cuboid_free(cuboid);
-    test_completed();
 }
 
-void test_save_algorithm() {
-    test_initiated("save_algorithm");
-    
-    Algorithm * algo = algorithm_for_string("R Uw 2Fw3 D' M2 x L2 y' z2");
-    
-    FILE * temp = tmpfile();
-    assert(temp != NULL);
-    
-    save_algorithm(algo, temp);
-    fseek(temp, 0, SEEK_SET);
-    Algorithm * loaded = load_algorithm(temp);
-    
-    if (!loaded) {
-        puts("Error: failed to load algorithm at all!");
+int test_algorithm_equality(Algorithm * a1, Algorithm * a2) {
+    if (a1->type != a2->type || a1->type != AlgorithmTypeContainer) {
+        puts("Error: algorithms are not both containers.");
+        return 0;
     }
-    if (loaded->type != AlgorithmTypeContainer) {
-        puts("Error: invalid type for loaded algorithm.");
+    if (algorithm_container_count(a1) != algorithm_container_count(a2)) {
+        puts("Error: algorithm lengths do not match.");
+        return 0;
     }
     
-    int i;
-    for (i = 0; i < algorithm_container_count(algo); i++) {
-        Algorithm * a1 = algorithm_container_get(algo, i);
-        Algorithm * a2 = algorithm_container_get(loaded, i);
-        if (memcmp(a1, a2, sizeof(Algorithm)) != 0) {
+    int i, retVal = 1;;
+    for (i = 0; i < algorithm_container_count(a1); i++) {
+        Algorithm * t1 = algorithm_container_get(a1, i);
+        Algorithm * t2 = algorithm_container_get(a2, i);
+        if (memcmp(t1, t2, sizeof(Algorithm)) != 0) {
             printf("Error: algorithms differ at index %d.\n", i);
+            retVal = 0;
         }
     }
-    
-    fclose(temp);
-    
-    algorithm_free(algo);
-    algorithm_free(loaded);
-    test_completed();
+    return retVal;
 }

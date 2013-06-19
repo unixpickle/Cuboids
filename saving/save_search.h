@@ -1,4 +1,5 @@
 #include "search/cuboid.h"
+#include "save_alg_list.h"
 #include <stdio.h>
 
 void save_cuboid_search(CSSearchState * state, FILE * fp);
