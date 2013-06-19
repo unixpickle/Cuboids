@@ -15,6 +15,7 @@ Here are the primary source directories and their significance:
  * `notation/` this is my implementation of an extended WCA move notation.
  * `search/` the *search engine* for exploring cube permutations on multiple threads.
  * `arguments/` a command-line argument parser which will be useful throughout this project.
+ * `saving/` the serialization system which will be used to pause/resume searches.
 
 General Todos
 =============
