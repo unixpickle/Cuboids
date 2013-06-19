@@ -38,3 +38,5 @@ static const Solver SolverTable[] = {
         standardpl_is_goal
      }
 };
+
+static const int SolverTableCount = 1;

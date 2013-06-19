@@ -73,11 +73,19 @@ void cl_argument_list_add(CLArgumentList * list, CLArgument * arg) {
     list->count++;
 }
 
-int cl_argument_list_count(CLArgumentList * list) {
+void cl_argument_list_add_all(CLArgumentList * list, const CLArgumentList * items) {
+    int i;
+    for (i = 0; i < items->count; i++) {
+        CLArgument * arg = items->arguments[i];
+        cl_argument_list_add(list, cl_argument_copy(arg));
+    }
+}
+
+int cl_argument_list_count(const CLArgumentList * list) {
     return list->count;
 }
 
-CLArgument * cl_argument_list_get(CLArgumentList * list, int index) {
+CLArgument * cl_argument_list_get(const CLArgumentList * list, int index) {
     assert(index >= 0 && index < list->count);
     return list->arguments[index];
 }
@@ -96,7 +104,7 @@ void cl_argument_list_remove(CLArgumentList * list, int index) {
     list->count = numCopied;
 }
 
-int cl_argument_list_find(CLArgumentList * list, const char * name) {
+int cl_argument_list_find(const CLArgumentList * list, const char * name) {
     int i;
     for (i = 0; i < list->count; i++) {
         CLArgument * arg = cl_argument_list_get(list, i);

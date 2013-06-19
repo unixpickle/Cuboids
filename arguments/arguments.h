@@ -51,10 +51,11 @@ void cl_argument_free(CLArgument * argument);
 
 CLArgumentList * cl_argument_list_new();
 void cl_argument_list_add(CLArgumentList * list, CLArgument * arg);
-int cl_argument_list_count(CLArgumentList * list);
-CLArgument * cl_argument_list_get(CLArgumentList * list, int index);
+void cl_argument_list_add_all(CLArgumentList * list, const CLArgumentList * items);
+int cl_argument_list_count(const CLArgumentList * list);
+CLArgument * cl_argument_list_get(const CLArgumentList * list, int index);
 void cl_argument_list_remove(CLArgumentList * list, int index);
-int cl_argument_list_find(CLArgumentList * list, const char * name);
+int cl_argument_list_find(const CLArgumentList * list, const char * name);
 void cl_argument_list_free(CLArgumentList * list);
 
 #endif
