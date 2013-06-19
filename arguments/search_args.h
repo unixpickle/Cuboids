@@ -15,4 +15,7 @@ typedef struct {
 CLArgumentList * cl_sa_default_arguments();
 int cl_sa_process(CLArgumentList * args, CLSearchParameters * params);
 
+// removes all default command line arguments from the list
+void cl_sa_remove_all(CLArgumentList * args);
+
 #endif

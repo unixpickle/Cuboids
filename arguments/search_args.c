@@ -34,6 +34,19 @@ int cl_sa_process(CLArgumentList * args, CLSearchParameters * params) {
     
 }
 
+void cl_sa_remove_all(CLArgumentList * args) {
+    CLArgumentList * defaults = cl_sa_default_arguments();
+    int i;
+    for (i = 0; i < cl_argument_list_count(defaults); i++) {
+        int j;
+        const char * name = cl_argument_list_get(defaults, i)->name;
+        while ((j = cl_argument_list_find(args, name)) >= 0) {
+            cl_argument_list_remove(args, j);
+        }
+    }
+    cl_argument_list_free(defaults);
+}
+
 /**************
  * Processing *
  **************/
