@@ -52,8 +52,8 @@ Algorithm * algorithm_new_container();
 
 void algorithm_container_add(Algorithm * container, Algorithm * a);
 void algorithm_container_remove(Algorithm * container, int index);
-Algorithm * algorithm_container_get(Algorithm * container, int index);
-int algorithm_container_count(Algorithm * container);
+Algorithm * algorithm_container_get(const Algorithm * container, int index);
+int algorithm_container_count(const Algorithm * container);
 
 void algorithm_free(Algorithm * algo);
 

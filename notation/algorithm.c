@@ -78,13 +78,13 @@ void algorithm_container_remove(Algorithm * container, int index) {
     container->contents.container.children = newChildren;
 }
 
-Algorithm * algorithm_container_get(Algorithm * container, int index) {
+Algorithm * algorithm_container_get(const Algorithm * container, int index) {
     assert(container->type == AlgorithmTypeContainer);
     assert(index >= 0 && index < algorithm_container_count(container));
     return container->contents.container.children[index];
 }
 
-int algorithm_container_count(Algorithm * container) {
+int algorithm_container_count(const Algorithm * container) {
     assert(container->type == AlgorithmTypeContainer);
     return container->contents.container.childrenCount;
 }

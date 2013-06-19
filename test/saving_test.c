@@ -1,12 +1,15 @@
 #include "saving/save_cuboid.h"
+#include "saving/save_algorithm.h"
 #include "notation/cuboid.h"
 #include "notation/parser.h"
 #include "test.h"
 
 void test_save_cuboid();
+void test_save_algorithm();
 
 int main() {
     test_save_cuboid();
+    test_save_algorithm();
     
     tests_completed();
     return 0;
@@ -69,5 +72,40 @@ void test_save_cuboid() {
     
     cuboid_free(cb);
     cuboid_free(cuboid);
+    test_completed();
+}
+
+void test_save_algorithm() {
+    test_initiated("save_algorithm");
+    
+    Algorithm * algo = algorithm_for_string("R Uw 2Fw3 D' M2 x L2 y' z2");
+    
+    FILE * temp = tmpfile();
+    assert(temp != NULL);
+    
+    save_algorithm(algo, temp);
+    fseek(temp, 0, SEEK_SET);
+    Algorithm * loaded = load_algorithm(temp);
+    
+    if (!loaded) {
+        puts("Error: failed to load algorithm at all!");
+    }
+    if (loaded->type != AlgorithmTypeContainer) {
+        puts("Error: invalid type for loaded algorithm.");
+    }
+    
+    int i;
+    for (i = 0; i < algorithm_container_count(algo); i++) {
+        Algorithm * a1 = algorithm_container_get(algo, i);
+        Algorithm * a2 = algorithm_container_get(loaded, i);
+        if (memcmp(a1, a2, sizeof(Algorithm)) != 0) {
+            printf("Error: algorithms differ at index %d.\n", i);
+        }
+    }
+    
+    fclose(temp);
+    
+    algorithm_free(algo);
+    algorithm_free(loaded);
     test_completed();
 }
