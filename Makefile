@@ -1,4 +1,5 @@
-SOURCE_DIRS=representation stickers algebra notation search arguments
+SOURCE_DIRS=representation stickers algebra notation \
+	 		search arguments saving
 
 all: solver
 
