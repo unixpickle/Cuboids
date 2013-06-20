@@ -5,7 +5,7 @@ typedef struct {
     uint8_t x, y, z;
 } Triple;
 
-void convert_sm_to_cb(Cuboid * cuboid, const StickerMap * map);
+int convert_sm_to_cb(Cuboid * cuboid, const StickerMap * map);
 void convert_cb_to_sm(StickerMap * map, const Cuboid * cuboid);
 
 Triple stickermap_get_edge_stickers(const StickerMap * sm,

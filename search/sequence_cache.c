@@ -12,7 +12,7 @@ SequenceCache * sequence_cache_create(Cuboid * baseCuboid, int allocStickers) {
 
 Cuboid * sequence_cache_make_cuboid(SequenceCache * cache, AlgList * list,
                                     const int * sequence, int len) {
-    if (len == 0) return NULL;
+    if (len == 0) return cache->baseCuboid;
     assert(len - cache->lastLength < 2);
     
     int allocLen = cache->cuboidsAlloc;

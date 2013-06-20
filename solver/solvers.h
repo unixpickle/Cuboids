@@ -11,6 +11,7 @@
 
 typedef struct {
     const char * name;
+    int cacheStickerMaps;
     
     // ** lifecycle **
     
@@ -29,7 +30,7 @@ typedef struct {
 
 static const Solver SolverTable[] = {
     {
-        "standard",
+        "standard", 0,
         standardpl_default_arguments,
         standardpl_run,
         standardpl_resume,

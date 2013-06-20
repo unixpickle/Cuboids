@@ -11,13 +11,13 @@ static int _cl_sa_parse_dimensions(const char * str, CuboidDimensions * dims);
 CLArgumentList * cl_sa_default_arguments() {
     CLArgumentList * list = cl_argument_list_new();
     
-    cl_argument_list_add(list, cl_argument_new_string("--dimensions", "3x3x3"));
-    cl_argument_list_add(list, cl_argument_new_string("--operations", ""));
-    cl_argument_list_add(list, cl_argument_new_flag("--multiple", 0));
-    cl_argument_list_add(list, cl_argument_new_flag("--verbose", 0));
-    cl_argument_list_add(list, cl_argument_new_integer("--mindepth", 0));
-    cl_argument_list_add(list, cl_argument_new_integer("--maxdepth", 20));
-    cl_argument_list_add(list, cl_argument_new_integer("--threads", 8));
+    cl_argument_list_add(list, cl_argument_new_string("dimensions", "3x3x3"));
+    cl_argument_list_add(list, cl_argument_new_string("operations", ""));
+    cl_argument_list_add(list, cl_argument_new_flag("multiple", 0));
+    cl_argument_list_add(list, cl_argument_new_flag("verbose", 0));
+    cl_argument_list_add(list, cl_argument_new_integer("mindepth", 0));
+    cl_argument_list_add(list, cl_argument_new_integer("maxdepth", 20));
+    cl_argument_list_add(list, cl_argument_new_integer("threads", 8));
     
     return list;
 }

@@ -21,15 +21,16 @@ static uint32_t _sm_corner_index(const StickerMap * sm,
 static uint32_t _sm_center_index(const StickerMap * sm,
                                  int face, int index);
 
-void convert_sm_to_cb(Cuboid * cuboid, const StickerMap * map) {
+int convert_sm_to_cb(Cuboid * cuboid, const StickerMap * map) {
     assert(cuboid_dimensions_equal(cuboid->dimensions, map->dimensions));
     if (cuboid->edges) {
-        _convert_stickermap_edges(cuboid, map);
+        if (!_convert_stickermap_edges(cuboid, map)) return 0;
     }
     if (cuboid->centers) {
-        _convert_stickermap_centers(cuboid, map);
+        if (!_convert_stickermap_centers(cuboid, map)) return 0;
     }
-    _convert_stickermap_corners(cuboid, map);
+    if (!_convert_stickermap_corners(cuboid, map)) return 0;
+    return 1;
 }
 
 void convert_cb_to_sm(StickerMap * map, const Cuboid * cuboid) {

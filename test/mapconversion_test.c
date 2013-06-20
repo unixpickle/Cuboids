@@ -26,7 +26,9 @@ void test_3x3x3_from_stickers() {
         stickers->stickers[i] = stickerData[i] - '1' + 1;
     }
     Cuboid * cuboid = cuboid_create(dim);
-    convert_sm_to_cb(cuboid, stickers);
+    if (!convert_sm_to_cb(cuboid, stickers)) {
+        puts("Error: conversion returned failure.");
+    }
     
     // Yes, I did manually enter this. No, I did not enjoy it.
     uint8_t corners[] = {1, 4, 0, 6, 2, 5, 7, 3};

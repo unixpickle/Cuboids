@@ -181,7 +181,7 @@ static BSThreadContext * _bs_thread_context_create(SRange range, int depth,
                                                    BSSearchContext * context) {
     BSThreadContext * tc = (BSThreadContext *)malloc(sizeof(BSThreadContext));
     bzero(tc, sizeof(BSThreadContext));
-    tc->sequence = (int *)malloc(sizeof(int) * depth);
+    tc->sequence = (int *)malloc(sizeof(int) * depth + 1);
     tc->depth = depth;
     tc->context = context;
     tc->range = range;
@@ -196,7 +196,7 @@ static BSThreadContext * _bs_thread_context_load(BSThreadState * save, int depth
     
     BSThreadContext * tc = (BSThreadContext *)malloc(sizeof(BSThreadContext));
     bzero(tc, sizeof(BSThreadContext));
-    tc->sequence = (int *)malloc(sizeof(int) * depth);
+    tc->sequence = (int *)malloc(sizeof(int) * depth + 1);
     tc->depth = depth;
     tc->context = ctx;
     tc->range = range;

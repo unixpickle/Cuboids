@@ -19,9 +19,9 @@ IdCache * id_cache_create(CuboidDimensions dims) {
     for (i = 0; i < (doubles[0] ? 2 : 4); i++) {
         Cuboid * xRot = cuboid_power(cuboids[0], i);
         for (j = 0; j < (doubles[1] ? 2 : 4); j++) {
-            Cuboid * yRot = cuboid_power(cuboids[1], i);
+            Cuboid * yRot = cuboid_power(cuboids[1], j);
             for (k = 0; k < (doubles[2] ? 2 : 4); k++) {                
-                Cuboid * zRot = cuboid_power(cuboids[2], i);
+                Cuboid * zRot = cuboid_power(cuboids[2], k);
                 cuboid_multiply_to(yRot, zRot);
                 cuboid_multiply_to(xRot, zRot);
                 

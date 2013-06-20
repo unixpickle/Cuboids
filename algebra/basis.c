@@ -16,7 +16,7 @@ AlgList * cuboid_standard_axis_basis(CuboidDimensions dims, CuboidMovesAxis axis
     int quarter = cuboid_validate_quarter_turn(dims, axis);
     int i;
     
-    for (i = 0; i < sideLength / 2; i++) {
+    for (i = 1; i <= sideLength / 2; i++) {
         int negFace = cuboid_face_for_face_turn(axis, -1);
         int posFace = cuboid_face_for_face_turn(axis, 1);
         _cuboid_generate_turns(list, dims, faceNames[negFace - 1], i, quarter);
