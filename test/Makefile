@@ -6,7 +6,7 @@ TESTS = cuboid_base_test cuboid_htmoves_test cuboid_qtmoves_test \
 
 all: test.o
 	for test in $(TESTS); do \
-		gcc $${test}.c $(wildcard ../*/build/*.o) test.o -o $$test -I../; \
+		gcc $${test}.c $(wildcard ../*/build/*.o) test.o -o $$test -I../ -lpthread; \
 	done
 
 test.o:
