@@ -3,3 +3,4 @@ TODO:
 - simplify double turn center rotation
 - in cuboid_copy_from_stickermap, calculate the edgeIndex
 - add binary search to IdCache
+- make it stop printing solutions if no --multiple is present

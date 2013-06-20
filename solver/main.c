@@ -68,6 +68,9 @@ int main(int argc, const char * argv[]) {
 void handle_interrupt(int dummy) {
     if (searchContext) {
         cs_context_stop(searchContext, 1);
+    } else {
+        printf("\n");
+        exit(0);
     }
 }
 
