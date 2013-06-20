@@ -8,6 +8,7 @@
 // magical global variables
 static SolveContext solveContext;
 static pthread_mutex_t printMutex = PTHREAD_MUTEX_INITIALIZER;
+static int foundSolution = 0;
 
 void handle_interrupt(int dummy);
 void print_usage(const char * command);
@@ -162,6 +163,11 @@ void search_handle_cuboid(void * data, const Cuboid * cuboid, StickerMap * cache
                           const int * sequence, int len) {
     if (solveContext.solver.is_goal(solveContext.userData, cuboid, cache)) {
         pthread_mutex_lock(&printMutex);
+        if (foundSolution && !solveContext.searchParameters.multipleFlag) {
+            pthread_mutex_unlock(&printMutex);
+            return;
+        }
+        foundSolution = 1;
         printf("Found solution:");
         int i;
         
