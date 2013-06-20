@@ -9,6 +9,7 @@ void test_random_3x3();
 void test_random_4x4();
 void test_equivalent_4x4();
 void test_superflip();
+void test_3x4x3_line();
 
 int main() {
     test_evil_eyes();
@@ -17,6 +18,7 @@ int main() {
     test_random_4x4();
     test_equivalent_4x4();
     test_superflip();
+    test_3x4x3_line();
     
     tests_completed();
     return 0;
@@ -258,6 +260,55 @@ void test_superflip() {
         }
     }
     
+    cuboid_free(cuboid);
+    test_completed();
+}
+
+void test_3x4x3_line() {
+    test_initiated("3x4x3 \"line\" algorithm");
+    
+    CuboidDimensions dims = {3, 4, 3};
+    const char * data = "212212212212" "121121121121" "333333333" "444444444" "666666666666" "555555555555";
+    StickerMap * map = stickermap_create(dims);
+    int i;
+    for (i = 0; i < 3*3*2 + 3*4*4; i++) {
+        map->stickers[i] = data[i] - '1' + 1;
+    }
+    Cuboid * cuboid = cuboid_create(dims);
+    if (!convert_sm_to_cb(cuboid, map)) {
+        puts("Error: failed to read stickermap :'(");
+    }
+    stickermap_free(map);
+    
+    Algorithm * algo = algorithm_for_string("R2 L2 Uw2 R2 L2 Uw2");
+    Cuboid * compare = algorithm_to_cuboid(algo, dims);
+    algorithm_free(algo);
+    
+    for (i = 0; i < 8; i++) {
+        CuboidCorner c1 = compare->corners[i];
+        CuboidCorner c2 = cuboid->corners[i];
+        if (c1.index != c2.index || c1.symmetry != c2.symmetry) {
+            printf("Error: corners differ at index %d.\n", i);
+            printf("(expected %d, found %d)\n", c2.index, c1.index);
+        }
+    }
+    for (i = 0; i < cuboid_count_edges(cuboid); i++) {
+        CuboidEdge e1 = compare->edges[i];
+        CuboidEdge e2 = cuboid->edges[i];
+        if (e1.dedgeIndex != e2.dedgeIndex || 
+            e1.symmetry != e2.symmetry) {
+                printf("Error: edges differ at index %d.\n", i);
+        }
+    }
+    for (i = 0; i < cuboid_count_centers(cuboid); i++) {
+        CuboidCenter c1 = compare->centers[i];
+        CuboidCenter c2 = cuboid->centers[i];
+        if (c1.side != c2.side) {
+            printf("Error: centers differ at index %d.\n", i);
+        }
+    }
+    
+    cuboid_free(compare);
     cuboid_free(cuboid);
     test_completed();
 }
