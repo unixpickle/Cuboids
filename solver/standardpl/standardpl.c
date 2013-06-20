@@ -30,7 +30,7 @@ void standardpl_completed(void * data) {
     id_cache_free(cache);
 }
 
-int standardpl_is_goal(void * data, Cuboid * cb, StickerMap * shouldBeNull) {
+int standardpl_is_goal(void * data, const Cuboid * cb, StickerMap * shouldBeNull) {
     assert(shouldBeNull == NULL);
     IdCache * cache = (IdCache *)data;
     return id_cache_contains(cache, cb);

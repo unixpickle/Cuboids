@@ -25,7 +25,7 @@ typedef struct {
     
     // ** search **
     
-    int (*is_goal)(void * data, Cuboid * cb, StickerMap * cache);
+    int (*is_goal)(void * data, const Cuboid * cb, StickerMap * cache);
 } Solver;
 
 static const Solver SolverTable[] = {

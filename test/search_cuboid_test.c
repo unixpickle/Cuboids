@@ -9,7 +9,7 @@ static volatile unsigned long long cubesFound;
 
 void test_solve_3x3();
 
-void handle_cuboid(void * data, Cuboid * cuboid, StickerMap * cache,
+void handle_cuboid(void * data, const Cuboid * cuboid, StickerMap * cache,
                    const int * sequence, int len);
 
 int main() {
@@ -76,7 +76,7 @@ void test_solve_3x3() {
     test_completed();
 }
 
-void handle_cuboid(void * data, Cuboid * cuboid, StickerMap * _cache,
+void handle_cuboid(void * data, const Cuboid * cuboid, StickerMap * _cache,
                    const int * sequence, int len) {
     __sync_add_and_fetch(&cubesFound, 1);
     assert(!_cache);

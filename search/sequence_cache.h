@@ -19,7 +19,7 @@ typedef struct {
 } SequenceCache;
 
 SequenceCache * sequence_cache_create(Cuboid * baseCuboid, int allocStickers);
-Cuboid * sequence_cache_make_cuboid(SequenceCache * cache, AlgList * list,
+const Cuboid * sequence_cache_make_cuboid(SequenceCache * cache, AlgList * list,
                                     const int * sequence, int len);
 void sequence_cache_clear(SequenceCache * cache);
 void sequence_cache_free(SequenceCache * cache);

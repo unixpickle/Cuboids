@@ -32,11 +32,11 @@ typedef struct {
     
     // Called to validate a cuboid. The StickerMap argument
     // will be non-NULL unless cacheStickerMaps is set to 0.
-    int (*accepts_cuboid)(void * data, Cuboid * cuboid,
+    int (*accepts_cuboid)(void * data, const Cuboid * cuboid,
                           StickerMap * cache, int depthRemaining);
                           
     // Called for each root node which is found
-    void (*handle_cuboid)(void * data, Cuboid * cuboid, StickerMap * cache,
+    void (*handle_cuboid)(void * data, const Cuboid * cuboid, StickerMap * cache,
                           const int * sequence, int len);
                           
     // Called if the context was saved

@@ -141,9 +141,9 @@ static void _cs_handle_reached(void * data, const int * sequence, int depth, int
     
     assert(th < ctx->bsContext->settings.threadCount);
     SequenceCache * cache = ctx->caches[th];
-    Cuboid * useCuboid = sequence_cache_make_cuboid(cache,
-                                                    ctx->settings.algorithms,
-                                                    sequence, depth);
+    const Cuboid * useCuboid = sequence_cache_make_cuboid(cache,
+                                                          ctx->settings.algorithms,
+                                                          sequence, depth);
     CSCallbacks cb = ctx->callbacks;
     if (cb.handle_cuboid) {
         cb.handle_cuboid(cb.userData, useCuboid, cache->stickerCache,
@@ -184,8 +184,8 @@ static int _cs_should_expand(void * data, const int * sequence, int len, int dep
     }
     
     SequenceCache * cache = ctx->caches[th];
-    Cuboid * cuboid = sequence_cache_make_cuboid(cache, ctx->settings.algorithms,
-                                                 sequence, len);
+    const Cuboid * cuboid = sequence_cache_make_cuboid(cache, ctx->settings.algorithms,
+                                                       sequence, len);
     if (cb.accepts_cuboid) {
         if (!cb.accepts_cuboid(cb.userData, cuboid, cache->stickerCache, depth - len)) {
             return 0;
