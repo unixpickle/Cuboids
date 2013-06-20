@@ -1,3 +1,6 @@
+#ifndef __SOLVERS_H__
+#define __SOLVERS_H__
+
 /**
  * This is essentially an interface which all solvers must
  * implement in order to be registered with the main program.
@@ -41,3 +44,5 @@ static const Solver SolverTable[] = {
 };
 
 static const int SolverTableCount = 1;
+
+#endif

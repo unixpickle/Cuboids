@@ -2,7 +2,7 @@ SOLVERS=standardpl
 SOLVERS_BUILD=standardpl/build
 
 solver: solvers
-	gcc main.c $(wildcard ../*/build/*.o) -I../ -lpthread -o solver
+	gcc $(wildcard *.c) $(wildcard ../*/build/*.o) -I../ -lpthread -o solver
 
 solvers: build
 	for dir in $(SOLVERS); do \
