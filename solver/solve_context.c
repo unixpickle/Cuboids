@@ -50,7 +50,7 @@ CSSearchState * sc_load(SolveContext * context, const char * fileName) {
 void sc_save(SolveContext * context, CSSearchState * state, const char * fileName) {
     FILE * fp = fopen(fileName, "w");
     
-    write(context->solver.name, 1, strlen(context->solver.name) + 1, fp);
+    fwrite(context->solver.name, 1, strlen(context->solver.name) + 1, fp);
     
     uint8_t verboseFlag = context->searchParameters.verboseFlag;
     uint8_t multipleFlag = context->searchParameters.multipleFlag;
