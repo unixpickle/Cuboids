@@ -1,3 +1,6 @@
+#ifndef __SEARCH_CUBOID_H__
+#define __SEARCH_CUBOID_H__
+
 #include <time.h>
 
 #include "notation/alg_list.h"
@@ -88,3 +91,5 @@ int cs_context_is_running(CSSearchContext * context);
 void cs_context_stop(CSSearchContext * context, int save);
 
 void cs_search_state_free(CSSearchState * state);
+
+#endif

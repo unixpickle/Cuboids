@@ -1,25 +1,30 @@
+#include <stdio.h>
+#include <signal.h>
+
 #include "solvers.h"
 #include "arguments/parser.h"
 #include "input/sticker_input.h"
 #include "search/cuboid.h"
 #include "notation/print.h"
-#include <stdio.h>
+#include "saving/save_search.h"
 
-#define kSearchNodeInterval 1000000
+#define kSearchNodeInterval 500000
 
 // magical global variables
 static CLSearchParameters searchParameters;
-static void * userData;
-static CSSearchContext * searchContext;
+static void * userData = NULL;
+static CSSearchContext * searchContext = NULL;
 static Solver solver;
 static pthread_mutex_t printMutex = PTHREAD_MUTEX_INITIALIZER;
 
+void handle_interrupt(int dummy);
 void print_usage(const char * command);
 
 int handle_resume(int argc, const char * argv[]);
 int handle_solver(int argc, const char * argv[]);
 
 void dispatch_search(Cuboid * root);
+void dispatch_resume(CSSearchState * state);
 
 CSCallbacks generate_callbacks();
 CSSettings generate_cs_settings(Cuboid * root);
@@ -27,6 +32,11 @@ BSSettings generate_bs_settings();
 
 int command_lookup_solver(const char * name);
 CLArgumentList * command_argument_list(int argc, const char * argv[]);
+
+void save_search(FILE * fp, CSSearchState * state);
+int load_solver(FILE * fp);
+int load_search_parameters(FILE * fp);
+void copy_parameters_from_state(CSSearchState * state);
 
 void search_handle_progress(void * data);
 void search_handle_depth(void * data, int depth);
@@ -43,7 +53,22 @@ int main(int argc, const char * argv[]) {
         return 1;
     }
     
-    return handle_solver(argc, argv);
+    bzero(&searchParameters, sizeof(searchParameters));
+    bzero(&solver, sizeof(solver));
+    
+    signal(SIGINT, handle_interrupt);
+    
+    if (strcmp(argv[1], "resume") == 0) {
+        return handle_resume(argc, argv);
+    } else {
+        return handle_solver(argc, argv);
+    }
+}
+
+void handle_interrupt(int dummy) {
+    if (searchContext) {
+        cs_context_stop(searchContext, 1);
+    }
 }
 
 void print_usage(const char * command) {
@@ -64,7 +89,45 @@ void print_usage(const char * command) {
  *********************************/
 
 int handle_resume(int argc, const char * argv[]) {
+    if (argc != 3) {
+        print_usage(argv[0]);
+        return 1;
+    }
+    FILE * fp = fopen(argv[2], "r");
+    if (!fp) {
+        fprintf(stderr, "Error: failed to open file.\n");
+        return 1;
+    }
+    if (!load_solver(fp)) {
+        fprintf(stderr, "Error: failed to load the solver name.\n");
+        fclose(fp);
+        return 1;
+    }
+    if (!load_search_parameters(fp)) {
+        fprintf(stderr, "Error: failed to load search parameters.\n");
+        fclose(fp);
+        return 1;
+    }
+    CSSearchState * state = load_cuboid_search(fp);
+    if (!state) {
+        fprintf(stderr, "Error: failed to load search state.\n");
+        return 1;
+    }
     
+    // this is mainly so that all future solvers that depend on the parameters
+    // we pass it are okay...
+    copy_parameters_from_state(state);
+    
+    int result = solver.resume(&searchParameters, fp, &userData);
+    fclose(fp);
+    if (!result) {
+        cs_search_state_free(state);
+        return 1;
+    }
+    
+    dispatch_resume(state);
+    while (1) sleep(1);
+    return 0;
 }
 
 int handle_solver(int argc, const char * argv[]) {
@@ -117,6 +180,11 @@ void dispatch_search(Cuboid * root) {
     CSSettings settings = generate_cs_settings(root);
     BSSettings bsSettings = generate_bs_settings();
     searchContext = cs_run(settings, bsSettings, callbacks);
+}
+
+void dispatch_resume(CSSearchState * state) {
+    CSCallbacks callbacks = generate_callbacks();
+    searchContext = cs_resume(state, callbacks);
 }
 
 CSCallbacks generate_callbacks() {
@@ -180,6 +248,52 @@ CLArgumentList * command_argument_list(int argc, const char * argv[]) {
     return result;
 }
 
+/**********
+ * Saving *
+ **********/
+
+void save_search(FILE * fp, CSSearchState * state) {
+    fwrite(solver.name, 1, strlen(solver.name) + 1, fp);
+    
+    uint8_t verboseFlag = searchParameters.verboseFlag;
+    uint8_t multipleFlag = searchParameters.multipleFlag;
+    fwrite(&verboseFlag, 1, 1, fp);
+    fwrite(&multipleFlag, 1, 1, fp);
+    save_cuboid_search(state, fp);
+}
+
+int load_search_parameters(FILE * fp) {
+    uint8_t verboseFlag, multipleFlag;
+    if (fread(&verboseFlag, 1, 1, fp) != 1) return 0;
+    if (fread(&multipleFlag, 1, 1, fp) != 1) return 0;
+    searchParameters.verboseFlag = verboseFlag;
+    searchParameters.multipleFlag = multipleFlag;
+}
+
+int load_solver(FILE * fp) {
+    char * nameBuffer = (char *)malloc(1);
+    nameBuffer[0] = 0;
+    int len = 0, chr;
+    while ((chr = fgetc(fp)) != EOF) {
+        if (chr == 0) break;
+        nameBuffer = (char *)realloc(nameBuffer, len + 2);
+        nameBuffer[len] = (char)chr;
+        nameBuffer[len + 1] = 0;
+        len++;
+    }
+    int res = command_lookup_solver(nameBuffer);
+    free(nameBuffer);
+    return res;
+}
+
+void copy_parameters_from_state(CSSearchState * state) {
+    searchParameters.minDepth = state->bsState->settings.minDepth;
+    searchParameters.maxDepth = state->bsState->settings.maxDepth;
+    searchParameters.threadCount = state->bsState->settings.threadCount;
+    searchParameters.dimensions = state->settings.rootNode->dimensions;
+    searchParameters.operations = state->settings.algorithms;
+}
+
 /*************
  * Callbacks *
  *************/
@@ -215,7 +329,7 @@ void search_handle_cuboid(void * data, const Cuboid * cuboid, StickerMap * cache
         
         // note that this will only be valid while the search context
         // is retained...
-        AlgList * list = searchParameters.operations;
+        AlgList * list = searchContext->settings.algorithms;
         
         for (i = 0; i < len; i++) {
             printf(" ");
@@ -225,19 +339,27 @@ void search_handle_cuboid(void * data, const Cuboid * cuboid, StickerMap * cache
         
         printf("\n");
         pthread_mutex_unlock(&printMutex);
+        
+        if (!searchParameters.multipleFlag) {
+            cs_context_stop(searchContext, 0);
+        }
     }
 }
 
 void search_handle_save_data(void * data, CSSearchState * save) {
-    printf("Would you like to save? [Y/n]: ");
+    printf("\nWould you like to save? [Y/n]: ");
     fflush(stdout);
     
     char c = fgetc(stdin);
     if (c == 'y' || c == 'Y') {
-        // TODO: save entire thing here...
-    } else {
-        cs_search_state_free(save);
+        char fileName[512];
+        sprintf(fileName, "save_%lld.dat", (long long int)time(NULL));
+        FILE * fp = fopen(fileName, "w");
+        save_search(fp, save);
+        fclose(fp);
+        printf("Saved to %s.\n", fileName);
     }
+    cs_search_state_free(save);
 }
 
 void search_handle_finished(void * data) {
