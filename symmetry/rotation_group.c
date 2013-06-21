@@ -8,7 +8,7 @@ static Cuboid * _create_rotation(CuboidDimensions dims, CuboidMovesAxis axis, in
 static int _cuboid_light_comparison(const Cuboid * c1, const Cuboid * c2);
 static int _rotation_group_closest_index(const RotationGroup * group, Cuboid * c);
 
-RotationBasis rotation_group_standard_basis(CuboidDimensions dims) {
+RotationBasis rotation_basis_standard(CuboidDimensions dims) {
     RotationBasis basis;
     basis.dims = dims;
     if (cuboid_validate_quarter_turn(dims, CuboidMovesAxisX)) {
@@ -40,7 +40,7 @@ RotationGroup * rotation_group_create(CuboidDimensions dims) {
 }
 
 RotationGroup * rotation_group_create_basis(RotationBasis basis) {
-    RotationBasis standard = rotation_group_standard_basis(basis.dims);
+    RotationBasis standard = rotation_basis_standard(basis.dims);
     assert(rotation_basis_is_subset(standard, basis));
     
     RotationGroup * group = rotation_group_create(basis.dims);
@@ -109,8 +109,8 @@ void rotation_group_add(RotationGroup * group, Cuboid * cb) {
     // shift for the insert
     int copyCount = group->count - insertIndex;
     if (copyCount > 0) {
-        Cuboid * sourceStart = &group->cuboids[insertIndex];
-        Cuboid * destStart = &group->cuboids[insertIndex + 1];
+        Cuboid ** sourceStart = &group->cuboids[insertIndex];
+        Cuboid ** destStart = &group->cuboids[insertIndex + 1];
         int copySize = sizeof(Cuboid *) * copyCount;
         memmove((void *)destStart, (void *)sourceStart, copySize);
     }

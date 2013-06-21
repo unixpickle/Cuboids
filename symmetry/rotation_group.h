@@ -16,7 +16,7 @@ typedef struct {
     int zPower;
 } RotationBasis;
 
-RotationBasis rotation_group_standard_basis(CuboidDimensions dims);
+RotationBasis rotation_basis_standard(CuboidDimensions dims);
 int rotation_basis_is_subset(RotationBasis general, RotationBasis subset);
 
 RotationGroup * rotation_group_create(CuboidDimensions dims);
