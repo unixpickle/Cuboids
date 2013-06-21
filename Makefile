@@ -1,5 +1,5 @@
 SOURCE_DIRS=representation stickers algebra notation \
-	 		search arguments saving input
+	 		search arguments saving input symmetry
 
 all: solver
 

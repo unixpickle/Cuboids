@@ -71,6 +71,7 @@ void rotation_group_retain(RotationGroup * group) {
 
 int rotation_group_contains(const RotationGroup * group, Cuboid * cb) {
     int guess = _rotation_group_closest_index(group, cb);
+    if (guess >= group->count) return 0;
     Cuboid * test = group->cuboids[guess];
     if (_cuboid_light_comparison(test, cb) == 0) return 1;
     return 0;
@@ -88,11 +89,13 @@ Cuboid * rotation_group_get(const RotationGroup * group, int index) {
 void rotation_group_add(RotationGroup * group, Cuboid * cb) {
     // figure out where we will insert the Cuboid
     int insertIndex = _rotation_group_closest_index(group, cb);
-    Cuboid * testCb = group->cuboids[insertIndex];
-    int result = _cuboid_light_comparison(cb, testCb);
-    assert(result != 0);
-    if (result > 0) {
-        result++;
+    if (insertIndex < group->count) {
+        Cuboid * testCb = group->cuboids[insertIndex];
+        int result = _cuboid_light_comparison(cb, testCb);
+        assert(result != 0);
+        if (result > 0) {
+            insertIndex++;
+        }
     }
     
     // allocate a bigger cuboid buffer
@@ -106,8 +109,8 @@ void rotation_group_add(RotationGroup * group, Cuboid * cb) {
     // shift for the insert
     int copyCount = group->count - insertIndex;
     if (copyCount > 0) {
-        Cuboid * sourceStart = group->cuboids[insertIndex];
-        Cuboid * destStart = group->cuboids[insertIndex + 1];
+        Cuboid * sourceStart = &group->cuboids[insertIndex];
+        Cuboid * destStart = &group->cuboids[insertIndex + 1];
         int copySize = sizeof(Cuboid *) * copyCount;
         memmove((void *)destStart, (void *)sourceStart, copySize);
     }
@@ -226,11 +229,12 @@ static int _rotation_group_closest_index(const RotationGroup * group, Cuboid * c
             break;
         }
     }
+    
     int idx = (high + low) / 2;
     if (high == low) return idx;
     
     if (idx < 0) idx = 0;
-    else if (idx >= group->count) idx = group->count - 1;
+    else if (idx > group->count) idx--;
     
     return idx;
 }

@@ -11,3 +11,6 @@ typedef struct {
 RotationCosets * rotation_cosets_create(RotationGroup * general, RotationGroup * subgroup);
 void rotation_cosets_release(RotationCosets * cosets);
 void rotation_cosets_retain(RotationCosets * cosets);
+
+int rotation_cosets_count(RotationCosets * cosets);
+Cuboid * rotation_cosets_get_trigger(RotationCosets * cosets, int index);

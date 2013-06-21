@@ -24,6 +24,18 @@ void rotation_cosets_retain(RotationCosets * cosets) {
     cosets->retainCount++;
 }
 
+/*************
+ * Accessing *
+ *************/
+
+int rotation_cosets_count(RotationCosets * cosets) {
+    return rotation_group_count(cosets->triggers);
+}
+
+Cuboid * rotation_cosets_get_trigger(RotationCosets * cosets, int index) {
+    return rotation_group_get(cosets->triggers, index);
+}
+
 /***********
  * Private *
  ***********/
