@@ -31,15 +31,19 @@ int rotation_basis_is_subset(RotationBasis general, RotationBasis subset) {
     return 1;
 }
 
-RotationGroup * rotation_group_create(RotationBasis basis) {
-    RotationBasis standard = rotation_group_standard_basis(basis.dims);
-    assert(rotation_basis_is_subset(standard, basis));
-    
+RotationGroup * rotation_group_create(CuboidDimensions dims) {
     RotationGroup * group = (RotationGroup *)malloc(sizeof(RotationGroup));
     bzero(group, sizeof(RotationGroup));
     group->retainCount = 1;
-    group->dims = basis.dims;
+    group->dims = dims;
+    return group;
+}
+
+RotationGroup * rotation_group_create_basis(RotationBasis basis) {
+    RotationBasis standard = rotation_group_standard_basis(basis.dims);
+    assert(rotation_basis_is_subset(standard, basis));
     
+    RotationGroup * group = rotation_group_create(basis.dims);
     _generate_from_basis(group, basis);
     
     return group;
@@ -61,11 +65,24 @@ void rotation_group_retain(RotationGroup * group) {
     group->retainCount++;
 }
 
+/*************
+ * Accessing *
+ *************/
+
 int rotation_group_contains(const RotationGroup * group, Cuboid * cb) {
     int guess = _rotation_group_closest_index(group, cb);
     Cuboid * test = group->cuboids[guess];
     if (_cuboid_light_comparison(test, cb) == 0) return 1;
     return 0;
+}
+
+int rotation_group_count(const RotationGroup * group) {
+    return group->count;
+}
+
+Cuboid * rotation_group_get(const RotationGroup * group, int index) {
+    assert(index >= 0 && index < group->count);
+    return group->cuboids[index];
 }
 
 void rotation_group_add(RotationGroup * group, Cuboid * cb) {
