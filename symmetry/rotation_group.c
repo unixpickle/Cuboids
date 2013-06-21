@@ -1,7 +1,12 @@
 #include "rotation_group.h"
 
+static void _generate_from_basis(RotationGroup * group, RotationBasis basis);
+static void _recursive_generate_basis(RotationGroup * group, Cuboid * soFar,
+                                      Cuboid ** rotations, int count, int depth);
+static Cuboid * _create_rotation(CuboidDimensions dims, CuboidMovesAxis axis, int power);
+
 static int _cuboid_light_comparison(const Cuboid * c1, const Cuboid * c2);
-static int _rotation_group_closest_index(RotationGroup * group, Cuboid * c);
+static int _rotation_group_closest_index(const RotationGroup * group, Cuboid * c);
 
 RotationBasis rotation_group_standard_basis(CuboidDimensions dims) {
     RotationBasis basis;
@@ -27,10 +32,16 @@ int rotation_basis_is_subset(RotationBasis general, RotationBasis subset) {
 }
 
 RotationGroup * rotation_group_create(RotationBasis basis) {
+    RotationBasis standard = rotation_group_standard_basis(basis.dims);
+    assert(rotation_basis_is_subset(standard, basis));
+    
     RotationGroup * group = (RotationGroup *)malloc(sizeof(RotationGroup));
     bzero(group, sizeof(RotationGroup));
     group->retainCount = 1;
     group->dims = basis.dims;
+    
+    _generate_from_basis(group, basis);
+    
     return group;
 }
 
@@ -50,7 +61,7 @@ void rotation_group_retain(RotationGroup * group) {
     group->retainCount++;
 }
 
-int rotation_group_contains(RotationGroup * group, Cuboid * cb) {
+int rotation_group_contains(const RotationGroup * group, Cuboid * cb) {
     int guess = _rotation_group_closest_index(group, cb);
     Cuboid * test = group->cuboids[guess];
     if (_cuboid_light_comparison(test, cb) == 0) return 1;
@@ -58,14 +69,95 @@ int rotation_group_contains(RotationGroup * group, Cuboid * cb) {
 }
 
 void rotation_group_add(RotationGroup * group, Cuboid * cb) {
-    if (group->count == 0) {
+    // figure out where we will insert the Cuboid
+    int insertIndex = _rotation_group_closest_index(group, cb);
+    Cuboid * testCb = group->cuboids[insertIndex];
+    int result = _cuboid_light_comparison(cb, testCb);
+    assert(result != 0);
+    if (result > 0) {
+        result++;
+    }
+    
+    // allocate a bigger cuboid buffer
+    if (!group->cuboids) {
         group->cuboids = (Cuboid **)malloc(sizeof(Cuboid *));
     } else {
-        int newSize = (group->count + 1) * sizeof(Cuboid *);
+        int newSize = sizeof(Cuboid *) * (group->count + 1);
         group->cuboids = (Cuboid **)realloc(group->cuboids, newSize);
     }
-    group->cuboids[group->count] = cb;
+    
+    // shift for the insert
+    int copyCount = group->count - insertIndex;
+    if (copyCount > 0) {
+        Cuboid * sourceStart = group->cuboids[insertIndex];
+        Cuboid * destStart = group->cuboids[insertIndex + 1];
+        int copySize = sizeof(Cuboid *) * copyCount;
+        memmove((void *)destStart, (void *)sourceStart, copySize);
+    }
+    
+    group->cuboids[insertIndex] = cb;
     group->count++;
+}
+
+/**********************
+ * Private generation *
+ **********************/
+
+static void _generate_from_basis(RotationGroup * group, RotationBasis basis) {
+    int basisCount = 0, i;
+    Cuboid * rotations[3];
+    if (basis.xPower > 0) {
+        rotations[basisCount] = _create_rotation(basis.dims, CuboidMovesAxisX,
+                                                 basis.xPower);
+        basisCount++;
+    }
+    if (basis.yPower > 0) {
+        rotations[basisCount] = _create_rotation(basis.dims, CuboidMovesAxisY,
+                                                 basis.yPower);
+        basisCount++;
+    }
+    if (basis.zPower > 0) {
+        rotations[basisCount] = _create_rotation(basis.dims, CuboidMovesAxisZ,
+                                                 basis.zPower);
+        basisCount++;
+    }
+    Cuboid * identity = cuboid_create(basis.dims);
+    _recursive_generate_basis(group, identity, rotations, basisCount, 0);
+    cuboid_free(identity);
+    for (i = 0; i < basisCount; i++) {
+        cuboid_free(rotations[i]);
+    }
+}
+
+static void _recursive_generate_basis(RotationGroup * group, Cuboid * soFar,
+                                      Cuboid ** rotations, int count, int depth) {
+    if (count == depth) {
+        if (!rotation_group_contains(group, soFar)) {
+            rotation_group_add(group, cuboid_copy(soFar));
+        }
+        return;
+    }
+    Cuboid * workspace = cuboid_create(group->dims);
+    int i;
+    for (i = 0; i < 4; i++) {
+        Cuboid * place = cuboid_power(rotations[depth], i);
+        cuboid_multiply(workspace, place, soFar);
+        cuboid_free(place);
+        _recursive_generate_basis(group, workspace, rotations,
+                                  count, depth + 1);
+    }
+    cuboid_free(workspace);
+}
+
+static Cuboid * _create_rotation(CuboidDimensions dims, CuboidMovesAxis axis, int power) {
+    // who uses one letter variable names now, noobs?
+    assert(axis >= 0 && axis < 3);
+    const char * axes = "xyz";
+    Algorithm * a = algorithm_new_rotation(axes[axis]);
+    a->power = power;
+    Cuboid * c = algorithm_to_cuboid(a, dims);
+    algorithm_free(a);
+    return c;
 }
 
 /****************************
@@ -101,7 +193,7 @@ static int _cuboid_light_comparison(const Cuboid * c1, const Cuboid * c2) {
     return 0;
 }
 
-static int _rotation_group_closest_index(RotationGroup * group, Cuboid * c) {
+static int _rotation_group_closest_index(const RotationGroup * group, Cuboid * c) {
     int low = -1, high = group->count;
     while (high - low > 1) {
         int test = (high + low) / 2;
