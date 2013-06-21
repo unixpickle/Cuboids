@@ -2,7 +2,7 @@ TESTS = cuboid_base_test cuboid_htmoves_test cuboid_qtmoves_test \
 	mapconversion_test sticker_algebra_test inverse_test \
 	notation_parse_test notation_cuboid_test search_boundary_test \
 	search_base_test search_cuboid_test arguments_parse_test \
-	saving_test symmetry_test
+	saving_test symmetry_test edge_orientation_test
 
 all: test.o
 	for test in $(TESTS); do \
