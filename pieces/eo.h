@@ -1,4 +1,5 @@
 #include "representation/cuboid_base.h"
+#include "eo_table.h"
 
 /**
  * Calculates whether or not the an edge `edge` at the physical
@@ -12,4 +13,3 @@
  */
 uint8_t cuboid_edge_orientation(CuboidEdge edge, int physicalDedge,
                                 int relativeAxis);
-
