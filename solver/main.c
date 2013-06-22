@@ -24,8 +24,8 @@ CSCallbacks generate_callbacks();
 void search_handle_progress(void * data);
 void search_handle_depth(void * data, int depth);
 int search_accepts_sequence(void * data, const int * seq, int len, int depthRem);
-int search_accepts_cuboid(void * data, const Cuboid * cuboid, StickerMap * cache, int depthRem);
-void search_handle_cuboid(void * data, const Cuboid * cuboid, StickerMap * cache,
+int search_accepts_cuboid(void * data, const Cuboid * cuboid, Cuboid * cache, int depthRem);
+void search_handle_cuboid(void * data, const Cuboid * cuboid, Cuboid * cache,
                           const int * sequence, int len);
 void search_handle_save_data(void * data, CSSearchState * save);
 void search_handle_finished(void * data);
@@ -154,12 +154,12 @@ int search_accepts_sequence(void * data, const int * seq, int len, int depthRem)
     return 1;
 }
 
-int search_accepts_cuboid(void * data, const Cuboid * cuboid, StickerMap * cache, int depthRem) {
+int search_accepts_cuboid(void * data, const Cuboid * cuboid, Cuboid * cache, int depthRem) {
     // TODO: insert heuristic pattern database lookup HERE...
     return 1;
 }
 
-void search_handle_cuboid(void * data, const Cuboid * cuboid, StickerMap * cache,
+void search_handle_cuboid(void * data, const Cuboid * cuboid, Cuboid * cache,
                           const int * sequence, int len) {
     if (solveContext.solver.is_goal(solveContext.userData, cuboid, cache)) {
         pthread_mutex_lock(&printMutex);

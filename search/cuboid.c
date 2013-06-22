@@ -89,7 +89,7 @@ static CSSearchContext * _cs_search_context_create(CSSettings s, BSSettings bs, 
     int tc = bs.threadCount, i;
     context->caches = (SequenceCache **)malloc(sizeof(SequenceCache *) * tc);
     for (i = 0; i < tc; i++) {
-        context->caches[i] = sequence_cache_create(s.rootNode, s.cacheStickerMaps);
+        context->caches[i] = sequence_cache_create(s.rootNode, s.cacheCuboid);
     }
     
     context->settings = s;
@@ -146,7 +146,7 @@ static void _cs_handle_reached(void * data, const int * sequence, int depth, int
                                                           sequence, depth);
     CSCallbacks cb = ctx->callbacks;
     if (cb.handle_cuboid) {
-        cb.handle_cuboid(cb.userData, useCuboid, cache->stickerCache,
+        cb.handle_cuboid(cb.userData, useCuboid, cache->userCache,
                          sequence, depth);
     }
 }
@@ -187,7 +187,7 @@ static int _cs_should_expand(void * data, const int * sequence, int len, int dep
     const Cuboid * cuboid = sequence_cache_make_cuboid(cache, ctx->settings.algorithms,
                                                        sequence, len);
     if (cb.accepts_cuboid) {
-        if (!cb.accepts_cuboid(cb.userData, cuboid, cache->stickerCache, depth - len)) {
+        if (!cb.accepts_cuboid(cb.userData, cuboid, cache->userCache, depth - len)) {
             return 0;
         }
     }

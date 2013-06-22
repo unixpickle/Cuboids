@@ -125,7 +125,7 @@ static void _save_s_boundary(SBoundary bound, FILE * fp) {
 }
 
 static void _save_cs_settings(CSSettings settings, FILE * fp) {
-    uint8_t cache = settings.cacheStickerMaps;
+    uint8_t cache = settings.cacheCuboid;
     fwrite(&cache, 1, 1, fp);
     save_cuboid(settings.rootNode, fp);
     save_alg_list(settings.algorithms, fp);
@@ -231,7 +231,7 @@ static int _load_cs_settings(CSSettings * settings, FILE * fp) {
         return 0;
     }
     
-    settings->cacheStickerMaps = cache;
+    settings->cacheCuboid = cache;
     settings->rootNode = c;
     settings->algorithms = list;
     return 1;

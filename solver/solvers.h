@@ -15,7 +15,7 @@
 
 typedef struct {
     const char * name;
-    int cacheStickerMaps;
+    int cacheCuboid;
     
     // ** lifecycle **
     
@@ -29,7 +29,7 @@ typedef struct {
     
     // ** search **
     
-    int (*is_goal)(void * data, const Cuboid * cb, StickerMap * cache);
+    int (*is_goal)(void * data, const Cuboid * cb, Cuboid * cache);
 } Solver;
 
 static const Solver SolverTable[] = {
@@ -43,7 +43,7 @@ static const Solver SolverTable[] = {
         standardpl_is_goal
      },
      {
-         "eo", 0,
+         "eo", 1,
          eopl_default_arguments,
          eopl_run,
          eopl_resume,

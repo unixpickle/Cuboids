@@ -64,23 +64,20 @@ void eopl_completed(void * data) {
     free(context);
 }
 
-int eopl_is_goal(void * data, const Cuboid * cb, StickerMap * cache) {
+int eopl_is_goal(void * data, const Cuboid * cb, Cuboid * cache) {
     // apply all of the cosets...
     EOPluginContext * context = (EOPluginContext *)data;
-    Cuboid * scratchpad = cuboid_create(cb->dimensions);
     int i;
     for (i = 0; i < rotation_cosets_count(context->cosets); i++) {
         Cuboid * rotation = rotation_cosets_get_trigger(context->cosets, i);
-        cuboid_multiply(scratchpad, rotation, cb);
+        cuboid_multiply(cache, rotation, cb);
         if (context->solveCenters) {
-            if (!_eo_are_centers_solved(scratchpad)) continue;
+            if (!_eo_are_centers_solved(cache)) continue;
         }
-        if (_eo_are_edges_oriented(scratchpad, context->axis)) {
-            cuboid_free(scratchpad);
+        if (_eo_are_edges_oriented(cache, context->axis)) {
             return 1;
         }
     }
-    cuboid_free(scratchpad);
     return 0;
 }
 

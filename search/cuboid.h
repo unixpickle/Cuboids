@@ -9,7 +9,7 @@
 #include "base.h"
 
 typedef struct {
-    uint8_t cacheStickerMaps;
+    uint8_t cacheCuboid;
     
     Cuboid * rootNode;
     AlgList * algorithms;
@@ -36,10 +36,10 @@ typedef struct {
     // Called to validate a cuboid. The StickerMap argument
     // will be non-NULL unless cacheStickerMaps is set to 0.
     int (*accepts_cuboid)(void * data, const Cuboid * cuboid,
-                          StickerMap * cache, int depthRemaining);
+                          Cuboid * cache, int depthRemaining);
                           
     // Called for each root node which is found
-    void (*handle_cuboid)(void * data, const Cuboid * cuboid, StickerMap * cache,
+    void (*handle_cuboid)(void * data, const Cuboid * cuboid, Cuboid * cache,
                           const int * sequence, int len);
                           
     // Called if the context was saved

@@ -107,7 +107,7 @@ Cuboid * sc_standard_solve_input(SolveContext * context, int argc, const char * 
 
 CSSettings sc_generate_cs_settings(SolveContext * context, Cuboid * root) {
     CSSettings settings;
-    settings.cacheStickerMaps = context->solver.cacheStickerMaps;
+    settings.cacheCuboid = context->solver.cacheCuboid;
     settings.rootNode = root;
     settings.algorithms = context->searchParameters.operations;
     return settings;

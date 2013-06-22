@@ -32,7 +32,7 @@ void standardpl_completed(void * data) {
     rotation_group_release(group);
 }
 
-int standardpl_is_goal(void * data, const Cuboid * cb, StickerMap * shouldBeNull) {
+int standardpl_is_goal(void * data, const Cuboid * cb, Cuboid * shouldBeNull) {
     assert(shouldBeNull == NULL);
     RotationGroup * group = (RotationGroup *)data;
     return rotation_group_contains(group, cb);

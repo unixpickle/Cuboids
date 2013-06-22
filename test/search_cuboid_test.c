@@ -37,7 +37,7 @@ void test_solve_3x3() {
     // these two arguments are consumed and freed by the solver
     settings.rootNode = solveMe;
     settings.algorithms = list;
-    settings.cacheStickerMaps = 0;
+    settings.cacheCuboid = 0;
     
     bsSettings.threadCount = 8;
     bsSettings.minDepth = 1;
@@ -77,7 +77,7 @@ void test_solve_3x3() {
     test_completed();
 }
 
-void handle_cuboid(void * data, const Cuboid * cuboid, StickerMap * _cache,
+void handle_cuboid(void * data, const Cuboid * cuboid, Cuboid * _cache,
                    const int * sequence, int len) {
     __sync_add_and_fetch(&cubesFound, 1);
     assert(!_cache);

@@ -1,10 +1,10 @@
 #include "sequence_cache.h"
 
-SequenceCache * sequence_cache_create(Cuboid * baseCuboid, int allocStickers) {
+SequenceCache * sequence_cache_create(Cuboid * baseCuboid, int userCache) {
     SequenceCache * cache = (SequenceCache *)malloc(sizeof(SequenceCache));
     bzero(cache, sizeof(SequenceCache));
-    if (allocStickers) {
-        cache->stickerCache = stickermap_create(baseCuboid->dimensions);
+    if (userCache) {
+        cache->userCache = cuboid_create(baseCuboid->dimensions);
     }
     cache->baseCuboid = baseCuboid;
     return cache;
@@ -68,8 +68,8 @@ void sequence_cache_free(SequenceCache * cache) {
     for (i = 0; i < cache->cuboidsAlloc; i++) {
         cuboid_free(cache->cuboids[i]);
     }
-    if (cache->stickerCache) {
-        stickermap_free(cache->stickerCache);
+    if (cache->userCache) {
+        cuboid_free(cache->userCache);
     }
     if (cache->cuboids) free(cache->cuboids);
     free(cache);

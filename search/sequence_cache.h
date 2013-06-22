@@ -6,19 +6,18 @@
  */
 
 #include <assert.h>
-#include "stickers/stickermap.h"
 #include "notation/alg_list.h"
 
 typedef struct {
     const Cuboid * baseCuboid;
     
-    StickerMap * stickerCache;
+    Cuboid * userCache;
     Cuboid ** cuboids;
     int cuboidsAlloc;
     int lastLength;
 } SequenceCache;
 
-SequenceCache * sequence_cache_create(Cuboid * baseCuboid, int allocStickers);
+SequenceCache * sequence_cache_create(Cuboid * baseCuboid, int userCache);
 const Cuboid * sequence_cache_make_cuboid(SequenceCache * cache, AlgList * list,
                                     const int * sequence, int len);
 void sequence_cache_clear(SequenceCache * cache);

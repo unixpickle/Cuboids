@@ -14,4 +14,4 @@ int eopl_run(CLSearchParameters * params, CLArgumentList * list, void ** userDat
 int eopl_resume(CLSearchParameters * params, FILE * fp, void ** userData);
 void eopl_save(void * data, FILE * fp);
 void eopl_completed(void * data);
-int eopl_is_goal(void * data, const Cuboid * cb, StickerMap * cache);
+int eopl_is_goal(void * data, const Cuboid * cb, Cuboid * cache);
