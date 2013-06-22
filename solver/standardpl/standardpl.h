@@ -1,4 +1,4 @@
-#include "symmetry/rotation_group.h"
+#include "algebra/rotation_group.h"
 #include "arguments/search_args.h"
 #include <stdio.h>
 

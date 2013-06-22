@@ -1,15 +1,14 @@
 #include "test.h"
 #include "search/cuboid.h"
 #include "stickers/mapconversion.h"
-#include "algebra/sticker_algebra.h"
-#include "symmetry/rotation_group.h"
+#include "algebra/rotation_group.h"
 
 static int solution[16];
 static volatile unsigned long long cubesFound;
 
 void test_solve_3x3();
 
-void handle_cuboid(void * data, const Cuboid * cuboid, StickerMap * cache,
+void handle_cuboid(void * data, const Cuboid * cuboid, Cuboid * cache,
                    const int * sequence, int len);
 
 int main() {

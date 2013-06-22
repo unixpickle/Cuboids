@@ -1,4 +1,4 @@
-#include "symmetry/rotation_cosets.h"
+#include "algebra/rotation_cosets.h"
 #include "arguments/search_args.h"
 #include <stdio.h>
 

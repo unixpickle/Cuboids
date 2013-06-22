@@ -1,4 +1,4 @@
-#include "symmetry/rotation_cosets.h"
+#include "algebra/rotation_cosets.h"
 #include "notation/parser.h"
 #include "test.h"
 

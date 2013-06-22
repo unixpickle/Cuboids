@@ -2,7 +2,4 @@ TODO:
 
 - simplify double turn center rotation
 - in cuboid_copy_from_stickermap, calculate the edgeIndex
-- add binary search to IdCache
-- make it stop printing solutions if no --multiple is present
 - generate save filename better and check if it exists
-- cache a cuboid for the solver to process with rather than a stickermap
