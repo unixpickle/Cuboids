@@ -9,6 +9,8 @@
  *
  */
 typedef struct {
+    CLArgumentList * (*default_arguments)();
+    
     /* creates a new indexer with command line arguments */
     int (*run)(CLSearchParameters * params, CLArgumentList * arguments, void ** userData);
     
