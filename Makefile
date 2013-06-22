@@ -1,5 +1,6 @@
 SOURCE_DIRS=representation stickers algebra notation \
-	 		search arguments saving input pieces
+	 		search arguments saving input pieces \
+			heuristic
 
 all: solver
 
