@@ -6,7 +6,7 @@ static void _recursive_generate_basis(RotationGroup * group, Cuboid * soFar,
 static Cuboid * _create_rotation(CuboidDimensions dims, CuboidMovesAxis axis, int power);
 
 static int _cuboid_light_comparison(const Cuboid * c1, const Cuboid * c2);
-static int _rotation_group_closest_index(const RotationGroup * group, Cuboid * c);
+static int _rotation_group_closest_index(const RotationGroup * group, const Cuboid * c);
 
 RotationBasis rotation_basis_standard(CuboidDimensions dims) {
     RotationBasis basis;
@@ -69,7 +69,7 @@ void rotation_group_retain(RotationGroup * group) {
  * Accessing *
  *************/
 
-int rotation_group_contains(const RotationGroup * group, Cuboid * cb) {
+int rotation_group_contains(const RotationGroup * group, const Cuboid * cb) {
     int guess = _rotation_group_closest_index(group, cb);
     if (guess >= group->count) return 0;
     Cuboid * test = group->cuboids[guess];
@@ -213,7 +213,7 @@ static int _cuboid_light_comparison(const Cuboid * c1, const Cuboid * c2) {
     return 0;
 }
 
-static int _rotation_group_closest_index(const RotationGroup * group, Cuboid * c) {
+static int _rotation_group_closest_index(const RotationGroup * group, const Cuboid * c) {
     int low = -1, high = group->count;
     while (high - low > 1) {
         int test = (high + low) / 2;

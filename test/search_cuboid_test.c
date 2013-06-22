@@ -2,7 +2,7 @@
 #include "search/cuboid.h"
 #include "stickers/mapconversion.h"
 #include "algebra/sticker_algebra.h"
-#include "algebra/idcache.h"
+#include "symmetry/rotation_group.h"
 
 static int solution[16];
 static volatile unsigned long long cubesFound;
@@ -44,11 +44,12 @@ void test_solve_3x3() {
     bsSettings.maxDepth = 5;
     bsSettings.nodeInterval = 1000000;
     
-    IdCache * cache = id_cache_create(dims);
+    RotationBasis basis = rotation_basis_standard(dims);
+    RotationGroup * group = rotation_group_create_basis(basis);
     
     bzero(&callbacks, sizeof(callbacks));
     callbacks.handle_cuboid = handle_cuboid;
-    callbacks.userData = cache;
+    callbacks.userData = group;
     
     CSSearchContext * search = cs_run(settings, bsSettings, callbacks);
     while (1) {
@@ -72,7 +73,7 @@ void test_solve_3x3() {
         printf("Error: found %lld cubes, expected 2000718.\n", cubesFound);
     }
     
-    id_cache_free(cache);
+    rotation_group_release(group);
     test_completed();
 }
 
@@ -81,8 +82,8 @@ void handle_cuboid(void * data, const Cuboid * cuboid, StickerMap * _cache,
     __sync_add_and_fetch(&cubesFound, 1);
     assert(!_cache);
     
-    IdCache * cache = (IdCache *)data;
-    int isSolved = id_cache_contains(cache, cuboid);
+    RotationGroup * group = (RotationGroup *)data;
+    int isSolved = rotation_group_contains(group, cuboid);
     
     if (isSolved) {
         memcpy(solution, sequence, len * sizeof(int));

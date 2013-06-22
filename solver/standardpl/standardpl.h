@@ -1,4 +1,4 @@
-#include "algebra/idcache.h"
+#include "symmetry/rotation_group.h"
 #include "arguments/search_args.h"
 #include "stickers/stickermap.h"
 #include <stdio.h>

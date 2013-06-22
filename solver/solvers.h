@@ -9,6 +9,7 @@
 #include <stdio.h>
 
 #include "standardpl/standardpl.h"
+#include "eopl/eopl.h"
 #include "arguments/search_args.h"
 #include "stickers/stickermap.h"
 
@@ -40,9 +41,18 @@ static const Solver SolverTable[] = {
         standardpl_save,
         standardpl_completed,
         standardpl_is_goal
-     }
+     },
+     {
+         "eo", 0,
+         eopl_default_arguments,
+         eopl_run,
+         eopl_resume,
+         eopl_save,
+         eopl_completed,
+         eopl_is_goal
+      }
 };
 
-static const int SolverTableCount = 1;
+static const int SolverTableCount = 2;
 
 #endif

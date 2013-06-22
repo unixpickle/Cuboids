@@ -1,3 +1,6 @@
+#ifndef __ROTATION_GROUP_H__
+#define __ROTATION_GROUP_H__
+
 #include "notation/cuboid.h"
 #include "algebra/power.h"
 #include <assert.h>
@@ -25,7 +28,9 @@ void rotation_group_release(RotationGroup * group);
 void rotation_group_retain(RotationGroup * group);
 
 // contains() compares the appearance, not the transformation
-int rotation_group_contains(const RotationGroup * group, Cuboid * cb);
+int rotation_group_contains(const RotationGroup * group, const Cuboid * cb);
 int rotation_group_count(const RotationGroup * group);
 Cuboid * rotation_group_get(const RotationGroup * group, int index);
 void rotation_group_add(RotationGroup * group, Cuboid * cb);
+
+#endif

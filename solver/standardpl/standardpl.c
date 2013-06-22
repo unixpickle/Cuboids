@@ -9,15 +9,17 @@ int standardpl_run(CLSearchParameters * params, CLArgumentList * list, void ** u
         return 0;
     }
     
-    IdCache * cache = id_cache_create(params->dimensions);
-    *userData = cache;
+    RotationBasis basis = rotation_basis_standard(params->dimensions);
+    RotationGroup * group = rotation_group_create_basis(basis);
+    *userData = group;
     
     return 1;
 }
 
 int standardpl_resume(CLSearchParameters * params, FILE * fp, void ** userData) {
-    IdCache * cache = id_cache_create(params->dimensions);
-    *userData = cache;
+    RotationBasis basis = rotation_basis_standard(params->dimensions);
+    RotationGroup * group = rotation_group_create_basis(basis);
+    *userData = group;
     return 1;
 }
 
@@ -26,12 +28,12 @@ void standardpl_save(void * data, FILE * fp) {
 }
 
 void standardpl_completed(void * data) {
-    IdCache * cache = (IdCache *)data;
-    id_cache_free(cache);
+    RotationGroup * group = (RotationGroup *)data;
+    rotation_group_release(group);
 }
 
 int standardpl_is_goal(void * data, const Cuboid * cb, StickerMap * shouldBeNull) {
     assert(shouldBeNull == NULL);
-    IdCache * cache = (IdCache *)data;
-    return id_cache_contains(cache, cb);
+    RotationGroup * group = (RotationGroup *)data;
+    return rotation_group_contains(group, cb);
 }
