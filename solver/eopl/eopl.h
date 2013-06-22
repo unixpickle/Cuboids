@@ -1,5 +1,4 @@
 #include "symmetry/rotation_cosets.h"
-#include "stickers/stickermap.h"
 #include "arguments/search_args.h"
 #include <stdio.h>
 
