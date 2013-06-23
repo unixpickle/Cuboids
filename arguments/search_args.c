@@ -164,37 +164,21 @@ static int _cl_sa_process_operations(CLArgumentList * args, CLSearchParameters *
 }
 
 static int _cl_sa_process_heuristics(CLArgumentList * args, CLSearchParameters * params) {
-    int count = 0;
-    Heuristic ** list = (Heuristic **)malloc(1);
-    char ** heuristicFiles = (char **)malloc(1);
+    HeuristicList * list = heuristic_list_new();
     
-    int i, j;
+    int i;
     for (i = 0; i < cl_argument_list_count(args); i++) {
         CLArgument * argument = cl_argument_list_get(args, i);
         if (strcmp(argument->name, "heuristic")) continue;
         const char * fileName = argument->contents.string.value;
-        // TODO: check if file exists
         Heuristic * heuristic = heuristic_from_file(fileName, params->dimensions);
         if (!heuristic) {
-            for (j = 0; j < count; j++) {
-                heuristic_free(list[j]);
-                free(heuristicFiles[j]);
-            }
-            free(list);
-            free(heuristicFiles);
+            heuristic_list_free(list);
             return 0;
         }
-        int newSize = sizeof(void *) * (count + 1);
-        list = (Heuristic **)realloc(list, newSize);
-        heuristicFiles = (char **)realloc(heuristicFiles, newSize);
-        list[count] = heuristic;
-        heuristicFiles[count] = (char *)malloc(strlen(fileName) + 1);
-        strcpy(heuristicFiles[count], fileName);
-        count++;
+        heuristic_list_add(list, heuristic, fileName);
     }
     
-    params->heuristicCount = count;
     params->heuristics = list;
-    params->heuristicFiles = heuristicFiles;
     return 1;
 }

@@ -10,8 +10,7 @@ static int _initialize_subproblem(Heuristic * heuristic, FILE * fp);
 static void _generate_symmetries(Heuristic * heuristic);
 
 void save_heuristic(Heuristic * heuristic, FILE * fp) {
-    fwrite(heuristic->subproblem.name, 1,
-           strlen(heuristic->subproblem.name) + 1, fp);
+    save_string(heuristic->subproblem.name, fp);
     _save_heuristic_parameters(heuristic->params, fp);
     _save_cosets(heuristic, fp);
     heuristic->subproblem.save(heuristic->spUserData, fp);
@@ -60,6 +59,42 @@ Heuristic * heuristic_from_file(const char * fileName, CuboidDimensions dims) {
     return h;
 }
 
+void save_heuristic_list(HeuristicList * list, FILE * fp) {
+    uint32_t heuristicCount = list->count;
+    save_uint32(heuristicCount, fp);
+    int i;
+    for (i = 0; i < heuristicCount; i++) {
+        const char * file = list->fileNames[i];
+        fwrite(file, 1, strlen(file) + 1, fp);
+    }
+}
+
+HeuristicList * load_heuristic_list(FILE * fp, CuboidDimensions dims) {
+    uint32_t count;
+    int i;
+    
+    if (!load_uint32(&count, fp)) return 0;
+    
+    HeuristicList * list = heuristic_list_new();
+    for (i = 0; i < count; i++) {
+        char * name = load_string(fp);
+        if (!name) {
+            heuristic_list_free(list);
+            return NULL;
+        }
+        Heuristic * heuristic = heuristic_from_file(name, dims);
+        if (!heuristic) {
+            heuristic_list_free(list);
+            free(name);
+            return NULL;
+        }
+        heuristic_list_add(list, heuristic, name);
+        free(name);
+    }
+    
+    return list;
+}
+
 /*******************
  * Private: saving *
  *******************/
@@ -90,16 +125,8 @@ static void _save_cosets(Heuristic * heuristic, FILE * fp) {
  ********************/
 
 static int _load_subproblem(FILE * fp, HSubproblem * spOut) {
-    char * nameBuffer = (char *)malloc(1);
-    nameBuffer[0] = 0;
-    int len = 0, chr;
-    while ((chr = fgetc(fp)) != EOF) {
-        if (chr == 0) break;
-        nameBuffer = (char *)realloc(nameBuffer, len + 2);
-        nameBuffer[len] = (char)chr;
-        nameBuffer[len + 1] = 0;
-        len++;
-    }
+    char * nameBuffer = load_string(fp);
+    if (!nameBuffer) return 0;
     int i, spCount = sizeof(HSubproblemTable) / sizeof(HSubproblem);
     for (i = 0; i < spCount; i++) {
         HSubproblem subproblem = HSubproblemTable[i];

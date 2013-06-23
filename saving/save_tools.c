@@ -23,6 +23,10 @@ void save_uint64(uint64_t number, FILE * fp) {
     fwrite(bytes, 1, 8, fp);
 }
 
+void save_string(const char * string, FILE * fp) {
+    fwrite(string, 1, strlen(string) + 1, fp);
+}
+
 int load_uint8(uint8_t * out, FILE * fp) {
     return (fread(out, 1, 1, fp) == 1);
 }
@@ -51,4 +55,21 @@ int load_uint64(uint64_t * out, FILE * fp) {
     }
     *out = number;
     return 1;
+}
+
+char * load_string(FILE * fp) {
+    char * buffer = (char *)malloc(1);
+    buffer[0] = 0;
+    int len = 0, chr;
+    while ((chr = fgetc(fp))) {
+        if (chr == EOF) {
+            free(buffer);
+            return NULL;
+        }
+        buffer = (char *)realloc(buffer, len + 2);
+        buffer[len] = (char)chr;
+        buffer[len + 1] = 0;
+        len++;
+    }
+    return buffer;
 }

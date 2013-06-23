@@ -3,7 +3,6 @@
 static int _lookup_solver(SolveContext * context, const char * name);
 static CLArgumentList * _argument_list(SolveContext * context, int argc, const char * argv[]);
 
-static char * _read_null_terminated(FILE * fp);
 static int _load_solver(SolveContext * context, FILE * fp);
 static int _load_search_parameters(SolveContext * context, FILE * fp);
 static int _load_search_heuristics(SolveContext * context, FILE * fp);
@@ -40,7 +39,7 @@ CSSearchState * sc_load(SolveContext * context, const char * fileName) {
     }
     
     // we must make sure our CLSearchParameters are accurate before
-    // we initialize the solver.
+    // we initialize the solver and heuristic list.
     _copy_parameters_from_state(context, state);
     
     if (!_load_search_heuristics(context, fp)) {
@@ -53,7 +52,7 @@ CSSearchState * sc_load(SolveContext * context, const char * fileName) {
     fclose(fp);
     if (!result) {
         cs_search_state_free(state);
-        _destroy_search_heuristics(context);
+        heuristic_list_free(context->searchParameters.heuristics);
         return NULL;
     }
     return state;
@@ -62,7 +61,7 @@ CSSearchState * sc_load(SolveContext * context, const char * fileName) {
 void sc_save(SolveContext * context, CSSearchState * state, const char * fileName) {
     FILE * fp = fopen(fileName, "w");
     
-    fwrite(context->solver.name, 1, strlen(context->solver.name) + 1, fp);
+    save_string(context->solver.name, fp);
     
     uint8_t verboseFlag = context->searchParameters.verboseFlag;
     uint8_t multipleFlag = context->searchParameters.multipleFlag;
@@ -72,14 +71,7 @@ void sc_save(SolveContext * context, CSSearchState * state, const char * fileNam
     save_cuboid_search(state, fp);
     context->solver.save(context->userData, fp);
     
-    // save each heuristic
-    uint32_t heuristicCount = context->searchParameters.heuristicCount;
-    save_uint32(heuristicCount, fp);
-    int i;
-    for (i = 0; i < heuristicCount; i++) {
-        const char * file = context->searchParameters.heuristicFiles[i];
-        fwrite(file, 1, strlen(file) + 1, fp);
-    }
+    save_heuristic_list(context->searchParameters.heuristics, fp);
     
     fclose(fp);
     
@@ -128,7 +120,7 @@ Cuboid * sc_standard_solve_input(SolveContext * context, int argc, const char * 
 }
 
 CSSettings sc_generate_cs_settings(SolveContext * context, Cuboid * root) {
-    int hasHeuristics = context->searchParameters.heuristicCount > 0;
+    int hasHeuristics = context->searchParameters.heuristics->count > 0;
     
     CSSettings settings;
     settings.cacheCuboid = context->solver.cacheCuboid | hasHeuristics;
@@ -156,7 +148,7 @@ void sc_release_resources(SolveContext * context) {
     } else {
         alg_list_release(context->searchParameters.operations);
     }
-    _destroy_search_heuristics(context);
+    heuristic_list_free(context->searchParameters.heuristics);
 }
 
 /***********
@@ -194,22 +186,8 @@ static CLArgumentList * _argument_list(SolveContext * context, int argc, const c
  * Private Loading *
  *******************/
 
-static char * _read_null_terminated(FILE * fp) {
-    char * nameBuffer = (char *)malloc(1);
-    nameBuffer[0] = 0;
-    int len = 0, chr;
-    while ((chr = fgetc(fp)) != EOF) {
-        if (chr == 0) break;
-        nameBuffer = (char *)realloc(nameBuffer, len + 2);
-        nameBuffer[len] = (char)chr;
-        nameBuffer[len + 1] = 0;
-        len++;
-    }
-    return nameBuffer;
-}
-
 static int _load_solver(SolveContext * context, FILE * fp) {
-    char * nameBuffer = _read_null_terminated(fp);
+    char * nameBuffer = load_string(fp);
     int res = _lookup_solver(context, nameBuffer);
     free(nameBuffer);
     return res;
@@ -225,33 +203,9 @@ static int _load_search_parameters(SolveContext * context, FILE * fp) {
 }
 
 static int _load_search_heuristics(SolveContext * context, FILE * fp) {
-    uint32_t count;
-    if (!load_uint32(&count, fp)) return 0;
-    int i, j;
-    
-    char ** fileNames = (char **)malloc(1 + (sizeof(char *) * count));
-    Heuristic ** heuristics = (Heuristic **)malloc(1 + (sizeof(Heuristic *) * count));
-    
-    for (i = 0; i < count; i++) {
-        char * fileName = _read_null_terminated(fp);
-        Heuristic * h = heuristic_from_file(fileName, context->searchParameters.dimensions);
-        if (!h) {
-            free(fileName);
-            for (j = 0; j < count; j++) {
-                heuristic_free(heuristics[j]);
-                free(fileNames[j]);
-            }
-            free(heuristics);
-            free(fileNames);
-            return 0;
-        }
-        heuristics[i] = h;
-        fileNames[i] = fileName;
-    }
-    context->searchParameters.heuristics = heuristics;
-    context->searchParameters.heuristicCount = count;
-    context->searchParameters.heuristicFiles = fileNames;
-    return 1;
+    CuboidDimensions dims = context->searchParameters.dimensions;
+    HeuristicList * list = load_heuristic_list(fp, dims);
+    context->searchParameters.heuristics = list;
 }
 
 static void _copy_parameters_from_state(SolveContext * context, CSSearchState * state) {
@@ -260,14 +214,4 @@ static void _copy_parameters_from_state(SolveContext * context, CSSearchState * 
     context->searchParameters.threadCount = state->bsState->settings.threadCount;
     context->searchParameters.dimensions = state->settings.rootNode->dimensions;
     context->searchParameters.operations = state->settings.algorithms;
-}
-
-static void _destroy_search_heuristics(SolveContext * context) {
-    int i;
-    for (i = 0; i < context->searchParameters.heuristicCount; i++) {
-        heuristic_free(context->searchParameters.heuristics[i]);
-        free(context->searchParameters.heuristicFiles[i]);
-    }
-    free(context->searchParameters.heuristics);
-    free(context->searchParameters.heuristicFiles);
 }

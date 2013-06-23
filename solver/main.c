@@ -158,8 +158,8 @@ int search_accepts_sequence(void * data, const int * seq, int len, int depthRem)
 int search_accepts_cuboid(void * data, const Cuboid * cuboid, Cuboid * cache, int depthRem) {
     CLSearchParameters params = solveContext.searchParameters;
     int i;
-    for (i = 0; i < params.heuristicCount; i++) {
-        Heuristic * h = params.heuristics[i];
+    for (i = 0; i < params.heuristics->count; i++) {
+        Heuristic * h = params.heuristics->heuristics[i];
         int value = heuristic_pruning_value(h, cuboid, cache);
         if (value > depthRem) return 0;
     }

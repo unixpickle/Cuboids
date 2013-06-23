@@ -11,10 +11,7 @@ typedef struct {
     int verboseFlag, multipleFlag;
     CuboidDimensions dimensions;
     AlgList * operations;
-    
-    int heuristicCount;
-    char ** heuristicFiles;
-    Heuristic ** heuristics;
+    HeuristicList * heuristics;
 } CLSearchParameters;
 
 CLArgumentList * cl_sa_default_arguments();
