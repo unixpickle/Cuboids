@@ -7,8 +7,6 @@ static int data_list_base_entry_size(DataList * list);
 static long long data_list_base_entry_index(DataListNode * base, const uint8_t * entry, int * found);
 static int _compare_data(const uint8_t * left, const uint8_t * right, int len);
 
-static void data_list_node_free(DataListNode * node);
-
 DataList * data_list_create(int dataSize, int headerLen, int shardDepth) {
     assert(dataSize >= shardDepth);
     DataList * list = (DataList *)malloc(sizeof(DataList));
@@ -28,6 +26,21 @@ DataList * data_list_create(int dataSize, int headerLen, int shardDepth) {
 void data_list_free(DataList * list) {
     data_list_node_free((DataListNode *)list->rootNode);
     free(list);
+}
+
+void data_list_node_free(DataListNode * node) {
+    if (node->nodeData) {
+        free(node->nodeData);
+    }
+    if (node->subnodes) {
+        int i;
+        for (i = 0; i < node->subnodeCount; i++) {
+            DataListNode * theNode = (DataListNode *)node->subnodes[i];
+            data_list_node_free(theNode);
+        }
+        free(node->subnodes);
+    }
+    free(node);
 }
 
 DataListNode * data_list_find_base(DataList * list, const uint8_t * body, int create) {
@@ -78,7 +91,7 @@ int data_list_base_add(DataListNode * node, const uint8_t * body, const uint8_t 
         memmove(dest, source, moveSize);
     }
     
-    uint8_t * bodyBuffer = &body[node->list->depth];
+    const uint8_t * bodyBuffer = &body[node->list->depth];
     long long bodyLen = node->list->dataSize - node->list->depth;
     memcpy(&node->nodeData[offset], header, node->list->headerLen);
     memcpy(&node->nodeData[offset + node->list->headerLen], bodyBuffer, bodyLen);
@@ -190,19 +203,4 @@ static int _compare_data(const uint8_t * left, const uint8_t * right, int len) {
         if (left[i] > right[i]) return 1;
     }
     return 0;
-}
-
-static void data_list_node_free(DataListNode * node) {
-    if (node->nodeData) {
-        free(node->nodeData);
-    }
-    if (node->subnodes) {
-        int i;
-        for (i = 0; i < node->subnodeCount; i++) {
-            DataListNode * theNode = (DataListNode *)node->subnodes[i];
-            data_list_node_free(theNode);
-        }
-        free(node->subnodes);
-    }
-    free(node);
 }

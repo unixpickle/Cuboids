@@ -1,5 +1,9 @@
 #include "save_tools.h"
 
+void save_uint8(uint8_t number, FILE * fp) {
+    fwrite(&number, 1, 1, fp);
+}
+
 void save_uint32(uint32_t number, FILE * fp) {
     uint8_t bytes[] = {number & 0xff, (number >> 8) & 0xff,
                        (number >> 16) & 0xff, (number >> 24) & 0xff};
@@ -19,6 +23,10 @@ void save_uint64(uint64_t number, FILE * fp) {
     fwrite(bytes, 1, 8, fp);
 }
 
+int load_uint8(uint8_t * out, FILE * fp) {
+    return (fread(out, 1, 1, fp) == 1);
+}
+
 int load_uint32(uint32_t * out, FILE * fp) {
     uint8_t bytes[4];
     if (fread(bytes, 1, 4, fp) != 4) return 0;
@@ -28,7 +36,7 @@ int load_uint32(uint32_t * out, FILE * fp) {
 
 int load_uint16(uint16_t * out, FILE * fp) {
     uint8_t bytes[2];
-    if (fread(bytes, 1, 2, fp) != 4) return 0;
+    if (fread(bytes, 1, 2, fp) != 2) return 0;
     *out = (bytes[0] | (bytes[1] << 8));
     return 1;
 }

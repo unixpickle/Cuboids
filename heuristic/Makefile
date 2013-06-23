@@ -1,4 +1,4 @@
-SRC=$(wildcard *.c)
+SRC=$(wildcard *.c) $(wildcard subproblems/*/*.c)
 
 main: $(SRC) build
 	gcc -c $(SRC) -Wall -I../

@@ -56,6 +56,11 @@ DataList * data_list_create(int dataSize, int headerLen, int shardDepth);
 void data_list_free(DataList * list);
 
 /**
+ * Frees a single data list node.
+ */
+void data_list_node_free(DataListNode * node);
+
+/**
  * Finds the "base node" (that is, node of depth `list->depth`) which
  * would correspond to the body `body`.
  * @argument create If this is 1, the base node and all parents will be

@@ -6,9 +6,9 @@
 #include <assert.h>
 
 typedef enum {
-    CuboidMovesAxisX,
-    CuboidMovesAxisY,
-    CuboidMovesAxisZ
+    CuboidMovesAxisX = 0,
+    CuboidMovesAxisY = 1,
+    CuboidMovesAxisZ = 2
 } CuboidMovesAxis;
 
 FaceMap cuboid_moves_face_map(CuboidMovesAxis axis, int offset);

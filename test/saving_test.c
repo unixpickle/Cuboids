@@ -1,6 +1,7 @@
 #include "saving/save_cuboid.h"
 #include "saving/save_algorithm.h"
 #include "saving/save_search.h"
+#include "saving/save_data_list.h"
 #include "notation/cuboid.h"
 #include "notation/parser.h"
 #include "test.h"
@@ -9,19 +10,23 @@ void test_save_cuboid();
 void test_save_algorithm();
 void test_save_base_search();
 void test_save_cuboid_search();
+void test_save_data_list();
 
 BSSearchState * generate_bs_search_state();
+DataList * generate_data_list();
 void test_base_state_equality(BSSearchState * s1, BSSearchState * s2);
 void test_cuboid_state_equality(CSSearchState * s1, CSSearchState * s2);
 void test_srange_equality(SRange r1, SRange r2);
 void test_cuboid_equality(Cuboid * c1, Cuboid * c2);
 int test_algorithm_equality(Algorithm * a1, Algorithm * a2);
+int test_data_list_node_equality(DataListNode * n1, DataListNode * n2);
 
 int main() {
     test_save_cuboid();
     test_save_algorithm();
     test_save_base_search();
     test_save_cuboid_search();
+    test_save_data_list();
     
     tests_completed();
     return 0;
@@ -134,6 +139,37 @@ void test_save_cuboid_search() {
     test_completed();
 }
 
+void test_save_data_list() {
+    test_initiated("save_data_list");
+    
+    DataList * list = generate_data_list();
+    FILE * temp = tmpfile();
+    assert(temp != NULL);
+    save_data_list(list, temp);
+    fseek(temp, 0, SEEK_SET);
+    DataList * loaded = load_data_list(temp);
+    fclose(temp);
+    
+    if (loaded) {
+        test_data_list_node_equality(loaded->rootNode, list->rootNode);
+        if (loaded->dataSize != list->dataSize) {
+            puts("Error: dataSize disagrees");
+        }
+        if (loaded->headerLen != list->headerLen) {
+            puts("Error: headerLen disagrees");
+        }
+        if (loaded->depth != list->depth) {
+            puts("Error: depth disagrees");
+        }
+    } else {
+        puts("Error: failed to load data list.");
+    }
+    
+    data_list_free(list);
+    
+    test_completed();
+}
+
 BSSearchState * generate_bs_search_state() {
     BSSearchState * state = (BSSearchState *)malloc(sizeof(BSSearchState));
     SBoundary b1, b2, b3, b4;
@@ -181,6 +217,34 @@ BSSearchState * generate_bs_search_state() {
     state->progress = dummyProgress;
     
     return state;
+}
+
+DataList * generate_data_list() {
+    DataList * list = data_list_create(4, 1, 2);
+    uint8_t counters[4] = {0, 0, 0, 0};
+    int isDone = 0;
+    while (!isDone) {
+        int i;
+        uint8_t header = 0x12;
+        for (i = 0; i < 4; i++) {
+            header ^= counters[i];
+        }
+        DataListNode * node = data_list_find_base(list, counters, 1);
+        assert(node != NULL);
+        data_list_base_add(node, counters, &header);
+        
+        // increment counters
+        for (i = 0; i < 4; i++) {
+            if (counters[i] == 0x20) {
+                counters[i] = 0;
+                if (i == 3) isDone = 1;
+            } else {
+                counters[i]++;
+                break;
+            }
+        }
+    }
+    return list;
 }
 
 void test_base_state_equality(BSSearchState * s1, BSSearchState * s2) {
@@ -315,4 +379,36 @@ int test_algorithm_equality(Algorithm * a1, Algorithm * a2) {
         }
     }
     return retVal;
+}
+
+int test_data_list_node_equality(DataListNode * n1, DataListNode * n2) {
+    if (n1->subnodeCount != n2->subnodeCount) {
+        puts("Error: subnodeCount does not match.");
+        return 0;
+    }
+    if (n1->dataSize != n2->dataSize) {
+        puts("Error: dataSize does not match.");
+        return 0;
+    }
+    if (n1->depth != n2->depth) {
+        puts("Error: depth does not match.");
+        return 0;
+    }
+    if (n1->nodeByte != n2->nodeByte) {
+        puts("Error: nodeByte does not match.");
+        return 0;
+    }
+    int i;
+    for (i = 0; i < n1->subnodeCount; i++) {
+        DataListNode * s1 = (DataListNode *)n1->subnodes[i];
+        DataListNode * s2 = (DataListNode *)n2->subnodes[i];
+        if (!test_data_list_node_equality(s1, s2)) {
+            return 0;
+        }
+    }
+    if (memcmp(n1->nodeData, n2->nodeData, n1->dataSize)) {
+        puts("Error: nodeData differs.");
+        return 0;
+    }
+    return 1;
 }
