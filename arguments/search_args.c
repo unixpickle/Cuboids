@@ -5,12 +5,14 @@ static void _cl_sa_process_flags(CLArgumentList * args, CLSearchParameters * par
 static int _cl_sa_process_min_max(CLArgumentList * args, CLSearchParameters * params);
 static int _cl_sa_process_threads(CLArgumentList * args, CLSearchParameters * params);
 static int _cl_sa_process_operations(CLArgumentList * args, CLSearchParameters * params);
+static int _cl_sa_process_heuristics(CLArgumentList * args, CLSearchParameters * params);
 
 CLArgumentList * cl_sa_default_arguments() {
     CLArgumentList * list = cl_argument_list_new();
     
     cl_argument_list_add(list, cl_argument_new_string("dimensions", "3x3x3"));
     cl_argument_list_add(list, cl_argument_new_string("operations", ""));
+    cl_argument_list_add(list, cl_argument_new_string("heuristic", ""));
     cl_argument_list_add(list, cl_argument_new_flag("multiple", 0));
     cl_argument_list_add(list, cl_argument_new_flag("verbose", 0));
     cl_argument_list_add(list, cl_argument_new_integer("mindepth", 0));
@@ -27,6 +29,10 @@ int cl_sa_process(CLArgumentList * args, CLSearchParameters * params) {
     if (!_cl_sa_process_min_max(args, params)) return 0;
     if (!_cl_sa_process_threads(args, params)) return 0;
     if (!_cl_sa_process_operations(args, params)) return 0;
+    if (!_cl_sa_process_heuristics(args, params)) {
+        alg_list_release(params->operations);
+        return 0;
+    }
     
     return 1;
     
@@ -155,4 +161,40 @@ static int _cl_sa_process_operations(CLArgumentList * args, CLSearchParameters *
     }
     
     return (params->operations != NULL);
+}
+
+static int _cl_sa_process_heuristics(CLArgumentList * args, CLSearchParameters * params) {
+    int count = 0;
+    Heuristic ** list = (Heuristic **)malloc(1);
+    char ** heuristicFiles = (char **)malloc(1);
+    
+    int i, j;
+    for (i = 0; i < cl_argument_list_count(args); i++) {
+        CLArgument * argument = cl_argument_list_get(args, i);
+        if (strcmp(argument->name, "heuristic")) continue;
+        const char * fileName = argument->contents.string.value;
+        // TODO: check if file exists
+        Heuristic * heuristic = heuristic_from_file(fileName, params->dimensions);
+        if (!heuristic) {
+            for (j = 0; j < count; j++) {
+                heuristic_free(list[j]);
+                free(heuristicFiles[j]);
+            }
+            free(list);
+            free(heuristicFiles);
+            return 0;
+        }
+        int newSize = sizeof(void *) * (count + 1);
+        list = (Heuristic **)realloc(list, newSize);
+        heuristicFiles = (char **)realloc(heuristicFiles, newSize);
+        list[count] = heuristic;
+        heuristicFiles[count] = (char *)malloc(strlen(fileName) + 1);
+        strcpy(heuristicFiles[count], fileName);
+        count++;
+    }
+    
+    params->heuristicCount = count;
+    params->heuristics = list;
+    params->heuristicFiles = heuristicFiles;
+    return 1;
 }

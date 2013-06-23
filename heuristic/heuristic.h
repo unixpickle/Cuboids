@@ -1,3 +1,6 @@
+#ifndef __HEURISTIC_H__
+#define __HEURISTIC_H__
+
 #include "subproblem_table.h"
 #include "data_list.h"
 
@@ -20,3 +23,9 @@ void heuristic_add_coset(Heuristic * heuristic, DataList * coset);
 // applies each symmetry and checks each coset table to get the lowest
 // pruning value
 int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid * scratchpad);
+
+// returns -1 if not found
+int heuristic_coset_value(Heuristic * heuristic, const Cuboid * cuboid,
+                          int coset, int angle);
+
+#endif

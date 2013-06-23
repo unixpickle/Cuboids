@@ -3,6 +3,7 @@
 static int _heuristic_find_subproblem(const char * name, HSubproblem * sp);
 static void _generate_symmetries(Heuristic * heuristic, HSParameters params);
 static int _heuristic_lookup(DataList * list, const uint8_t * data, int maxDepth);
+static int _heuristic_lookup_or_fail(DataList * list, const uint8_t * data);
 
 Heuristic * heuristic_create(HSParameters params, CLArgumentList * args, const char * spName) {
     HSubproblem subproblem;
@@ -94,6 +95,21 @@ int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid
     return maxValue;
 }
 
+int heuristic_coset_value(Heuristic * heuristic, const Cuboid * cuboid,
+                          int cosetIdx, int angle) {
+    assert(cosetIdx >= 0 && cosetIdx < heuristic->cosetCount);
+    DataList * coset = heuristic->cosets[cosetIdx];
+    int dataSize = heuristic->subproblem.data_size(heuristic->spUserData);
+    uint8_t * heuristicData = (uint8_t *)malloc(dataSize);
+    
+    heuristic->subproblem.get_data(heuristic->spUserData, cuboid,
+                                   heuristicData, angle);
+
+    int value = _heuristic_lookup_or_fail(coset, heuristicData);
+    free(heuristicData);
+    return value;
+}
+
 static int _heuristic_find_subproblem(const char * name, HSubproblem * sp) {
     int spCount = sizeof(HSubproblemTable) / sizeof(HSubproblem);
     int i;
@@ -113,15 +129,17 @@ static void _generate_symmetries(Heuristic * heuristic, HSParameters params) {
 }
 
 static int _heuristic_lookup(DataList * list, const uint8_t * data, int maxDepth) {
+    int result = _heuristic_lookup_or_fail(list, data);
+    if (result < 0) return maxDepth + 1;
+    return result;
+}
+
+static int _heuristic_lookup_or_fail(DataList * list, const uint8_t * data) {
     DataListNode * base = data_list_find_base(list, data, 0);
-    if (!base) return maxDepth + 1;
+    if (!base) return -1;
     uint8_t * header;
     if (!data_list_base_find(base, data, &header)) {
-        return maxDepth + 1;
+        return -1;
     }
-#if __BIG_ENDIAN
-    return (header[0] << 8) | header[1];
-#else
-    return (header[1] << 8) | header[0];
-#endif 
+    return header[0] | (header[1] << 8);
 }

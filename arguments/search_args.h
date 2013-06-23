@@ -3,6 +3,7 @@
 
 #include "arguments.h"
 #include "algebra/basis.h"
+#include "heuristic/heuristic_io.h"
 
 typedef struct {
     int minDepth, maxDepth;
@@ -10,6 +11,10 @@ typedef struct {
     int verboseFlag, multipleFlag;
     CuboidDimensions dimensions;
     AlgList * operations;
+    
+    int heuristicCount;
+    char ** heuristicFiles;
+    Heuristic ** heuristics;
 } CLSearchParameters;
 
 CLArgumentList * cl_sa_default_arguments();

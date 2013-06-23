@@ -52,6 +52,14 @@ Heuristic * load_heuristic(FILE * fp, CuboidDimensions newDims) {
     return heuristic;
 }
 
+Heuristic * heuristic_from_file(const char * fileName, CuboidDimensions dims) {
+    FILE * fp = fopen(fileName, "r");
+    if (!fp) return NULL;
+    Heuristic * h = load_heuristic(fp, dims);
+    fclose(fp);
+    return h;
+}
+
 /*******************
  * Private: saving *
  *******************/
@@ -64,6 +72,8 @@ static void _save_heuristic_parameters(HSParameters params, FILE * fp) {
     fwrite(&xPower, 1, 1, fp);
     fwrite(&yPower, 1, 1, fp);
     fwrite(&zPower, 1, 1, fp);
+    uint32_t maxDepth = params.maxDepth;
+    save_uint32(maxDepth, fp);
 }
 
 static void _save_cosets(Heuristic * heuristic, FILE * fp) {
@@ -111,6 +121,9 @@ static int _load_heuristic_parameters(FILE * fp, HSParameters * params) {
     params->symmetries.xPower = xPow;
     params->symmetries.yPower = yPow;
     params->symmetries.zPower = zPow;
+    uint32_t maxDepth;
+    if (!load_uint32(&maxDepth, fp)) return 0;
+    params->maxDepth = maxDepth;
     return 1;
 }
 

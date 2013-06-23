@@ -4,7 +4,7 @@ static void _generate_triggers(RotationCosets * cosets, RotationGroup * g1, Rota
 
 RotationCosets * rotation_cosets_create(RotationGroup * general, RotationGroup * subgroup) {
     assert(cuboid_dimensions_equal(general->dims, subgroup->dims));
-    assert(general->count > subgroup->count);
+    assert(general->count >= subgroup->count);
     assert(general->count % subgroup->count == 0);
     RotationCosets * cosets = (RotationCosets *)malloc(sizeof(RotationCosets));
     cosets->triggers = rotation_group_create(general->dims);

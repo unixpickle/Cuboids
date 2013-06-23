@@ -67,6 +67,7 @@ void print_usage(const char * command) {
     puts(" --threads=n       the number of search threads to use [8]");
     puts(" --operations <x>  the , separated operations to use");
     puts(" --dimensions <x>  the dimensions in XxYxZ format. [3x3x3]");
+    puts(" --heuristic <x>   a heuristic database to use.");
     printf("\n\n");
 }
 
@@ -155,7 +156,13 @@ int search_accepts_sequence(void * data, const int * seq, int len, int depthRem)
 }
 
 int search_accepts_cuboid(void * data, const Cuboid * cuboid, Cuboid * cache, int depthRem) {
-    // TODO: insert heuristic pattern database lookup HERE...
+    CLSearchParameters params = solveContext.searchParameters;
+    int i;
+    for (i = 0; i < params.heuristicCount; i++) {
+        Heuristic * h = params.heuristics[i];
+        int value = heuristic_pruning_value(h, cuboid, cache);
+        if (value > depthRem) return 0;
+    }
     return 1;
 }
 

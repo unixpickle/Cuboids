@@ -33,7 +33,6 @@ void standardpl_completed(void * data) {
 }
 
 int standardpl_is_goal(void * data, const Cuboid * cb, Cuboid * shouldBeNull) {
-    assert(shouldBeNull == NULL);
     RotationGroup * group = (RotationGroup *)data;
     return rotation_group_contains(group, cb);
 }
