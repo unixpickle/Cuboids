@@ -165,6 +165,7 @@ void test_save_data_list() {
         puts("Error: failed to load data list.");
     }
     
+    data_list_free(loaded);
     data_list_free(list);
     
     test_completed();
