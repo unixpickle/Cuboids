@@ -17,7 +17,7 @@ Heuristic * heuristic_create(HSParameters params, CLArgumentList * args, const c
     bzero(heuristic, sizeof(Heuristic));
     heuristic->subproblem = subproblem;
     heuristic->spUserData = userData;
-    heuristic->maxDepth = params.maxDepth;
+    heuristic->params = params;
     _generate_symmetries(heuristic, params);
     return heuristic;
 }
@@ -60,7 +60,7 @@ int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid
     int i, angle, cosetIdx;
     
     for (i = 0; i < angleCount; i++) {
-        angleValues[i] = heuristic->maxDepth + 1;
+        angleValues[i] = heuristic->params.maxDepth + 1;
     }
     
     for (i = 0; i < rotation_group_count(heuristic->symmetries); i++) {
@@ -73,7 +73,8 @@ int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid
             for (angle = 0; angle < angleCount; angle++) {
                 heuristic->subproblem.get_data(heuristic->spUserData, scratchpad,
                                                heuristicData, angle);
-                int thisValue = _heuristic_lookup(coset, heuristicData, heuristic->maxDepth);
+                int thisValue = _heuristic_lookup(coset, heuristicData,
+                                                  heuristic->params.maxDepth);
                 if (thisValue < angleValues[angle]) {
                     angleValues[angle] = thisValue;
                 }

@@ -11,4 +11,4 @@ build:
 	if [ ! -d build ]; then mkdir build; fi
 
 clean:
-	rm -rf build/ solver
+	rm -rf build/ indexer

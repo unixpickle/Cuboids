@@ -4,7 +4,7 @@
 typedef struct {
     HSubproblem subproblem;
     void * spUserData;
-    int maxDepth;
+    HSParameters params;
     
     int cosetCount;
     DataList ** cosets;

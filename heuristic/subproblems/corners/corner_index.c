@@ -30,6 +30,10 @@ int corner_index_load(HSParameters params, FILE * fp, void ** userData) {
         }
         data->quartersAllowed[i] = flag;
     }
+    if (!corner_index_supports_dimensions(data, params.symmetries.dims)) {
+        free(data);
+        return 0;
+    }
     *userData = data;
     return 1;
 }

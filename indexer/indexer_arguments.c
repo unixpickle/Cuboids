@@ -1,20 +1,26 @@
 #include "indexer_arguments.h"
 
 static int _process_rotation_args(CLArgumentList * args, IndexerArguments * out);
+static int _process_numerical_args(CLArgumentList * args, IndexerArguments * out);
+static int _process_dimensions(CLArgumentList * args, IndexerArguments * out);
+static int _process_operations(CLArgumentList * args, IndexerArguments * out);
 static int _parse_rotation_axes(const unsigned char * axes, RotationBasis * basis);
 
 CLArgumentList * indexer_default_arguments() {
-    CLArgumentList * args = cl_sa_default_arguments();
+    CLArgumentList * args = cl_argument_list_new();
     cl_argument_list_add(args, cl_argument_new_string("symmetries", ""));
+    cl_argument_list_add(args, cl_argument_new_string("operations", ""));
+    cl_argument_list_add(args, cl_argument_new_string("dimensions", "3x3x3"));
+    cl_argument_list_add(args, cl_argument_new_integer("threads", 1));
+    cl_argument_list_add(args, cl_argument_new_integer("maxdepth", 8));
+    return args;
 }
 
 int indexer_process_arguments(CLArgumentList * args, IndexerArguments * out) {
-    if (!cl_sa_process(args, &out->search)) return 0;
-    if (!_process_rotation_args(args, out)) {
-        alg_list_release(out->search.operations);
-        return 0;
-    }
-    out->symmetries.dims = out->search.dimensions;
+    if (!_process_dimensions(args, out)) return 0;
+    if (!_process_rotation_args(args, out)) return 0;
+    if (!_process_numerical_args(args, out)) return 0;
+    if (!_process_operations(args, out)) return 0;
     return 1;
 }
 
@@ -23,9 +29,8 @@ int indexer_process_arguments(CLArgumentList * args, IndexerArguments * out) {
  ***********/
 
 static int _process_rotation_args(CLArgumentList * args, IndexerArguments * out) {
-    RotationBasis basis = rotation_basis_standard(out->search.dimensions);
-    
-    index = cl_argument_list_find(args, "symmetries");
+    int index = cl_argument_list_find(args, "symmetries");
+    RotationBasis basis = rotation_basis_standard(out->symmetries.dims);
     if (index >= 0) {
         CLArgument * arg = cl_argument_list_get(args, index);
         if (!_parse_rotation_axes(arg->contents.string.value, &out->symmetries)) {
@@ -39,6 +44,40 @@ static int _process_rotation_args(CLArgumentList * args, IndexerArguments * out)
     }
     
     return 1;
+}
+
+static int _process_numerical_args(CLArgumentList * args, IndexerArguments * out) {
+    int index = cl_argument_list_find(args, "threads");
+    assert(index >= 0);
+    CLArgument * arg = cl_argument_list_get(args, index);
+    out->threadCount = arg->contents.integer.value;
+    if (out->threadCount <= 0) return 0;
+    
+    index = cl_argument_list_find(args, "maxdepth");
+    assert(index >= 0);
+    arg = cl_argument_list_get(args, index);
+    out->maxDepth = arg->contents.integer.value;
+    
+    return 1;
+}
+
+static int _process_dimensions(CLArgumentList * args, IndexerArguments * out) {
+    int index = cl_argument_list_find(args, "dimensions");
+    assert(index >= 0);
+    CLArgument * arg = cl_argument_list_get(args, index);
+    return cl_sa_parse_dimensions(arg->contents.string.value, &out->symmetries.dims);
+}
+
+static int _process_operations(CLArgumentList * args, IndexerArguments * out) {
+    int index = cl_argument_list_find(args, "operations");
+    if (index < 0) {
+        out->operations = cuboid_standard_basis(out->symmetries.dims);
+    } else {
+        CLArgument * arg = cl_argument_list_get(args, index);
+        out->operations = alg_list_parse(arg->contents.string.value, 
+                                         out->symmetries.dims);
+    }
+    return (out->operations != NULL);
 }
 
 static int _parse_rotation_axes(const unsigned char * axes, RotationBasis * basis) {

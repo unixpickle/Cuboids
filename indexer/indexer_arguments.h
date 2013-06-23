@@ -1,9 +1,12 @@
-#include "arguments/search_args.h"
 #include "algebra/rotation_group.h"
+#include "arguments/search_args.h"
+#include "algebra/basis.h"
 
 typedef struct {
     RotationBasis symmetries;
-    CLSearchParameters search;
+    int maxDepth;
+    int threadCount;
+    AlgList * operations;
 } IndexerArguments;
 
 CLArgumentList * indexer_default_arguments();

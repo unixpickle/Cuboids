@@ -6,8 +6,6 @@ static int _cl_sa_process_min_max(CLArgumentList * args, CLSearchParameters * pa
 static int _cl_sa_process_threads(CLArgumentList * args, CLSearchParameters * params);
 static int _cl_sa_process_operations(CLArgumentList * args, CLSearchParameters * params);
 
-static int _cl_sa_parse_dimensions(const char * str, CuboidDimensions * dims);
-
 CLArgumentList * cl_sa_default_arguments() {
     CLArgumentList * list = cl_argument_list_new();
     
@@ -34,6 +32,39 @@ int cl_sa_process(CLArgumentList * args, CLSearchParameters * params) {
     
 }
 
+int cl_sa_parse_dimensions(const char * str, CuboidDimensions * dims) {
+    int xCount = 0;
+    int xIndices[2];
+    int i;
+    for (i = 0; i < strlen(str); i++) {
+        if (str[i] == 'x') {
+            if (xCount == 2) return 0;
+            xIndices[xCount] = i;
+            xCount++;
+        } else if (str[i] < '0' || str[i] > '9') {
+            return 0;
+        }
+    }
+    
+    if (xCount != 2) return 0;
+    char * buffer = (char *)malloc(strlen(str) + 1);
+    
+    bzero(buffer, strlen(str) + 1);
+    memcpy(buffer, str, xIndices[0]);
+    dims->x = atoi(buffer);
+    
+    bzero(buffer, strlen(str) + 1);
+    memcpy(buffer, &str[xIndices[0] + 1], xIndices[1] - xIndices[0] - 1);
+    dims->y = atoi(buffer);
+    
+    bzero(buffer, strlen(str) + 1);
+    strcpy(buffer, &str[xIndices[1] + 1]);
+    dims->z = atoi(buffer);
+    
+    free(buffer);
+    return 1;
+}
+
 void cl_sa_remove_all(CLArgumentList * args) {
     CLArgumentList * defaults = cl_sa_default_arguments();
     int i;
@@ -56,7 +87,7 @@ static int _cl_sa_process_dims(CLArgumentList * args, CuboidDimensions * dims) {
     assert(index >= 0);
     
     CLArgument * argument = cl_argument_list_get(args, index);
-    if (!_cl_sa_parse_dimensions(argument->contents.string.value, dims)) {
+    if (!cl_sa_parse_dimensions(argument->contents.string.value, dims)) {
         return 0;
     }
     if (dims->x < 2 || dims->y < 2 || dims->z < 2) {
@@ -124,41 +155,4 @@ static int _cl_sa_process_operations(CLArgumentList * args, CLSearchParameters *
     }
     
     return (params->operations != NULL);
-}
-
-/***************
- * Raw parsing *
- ***************/
-
-static int _cl_sa_parse_dimensions(const char * str, CuboidDimensions * dims) {
-    int xCount = 0;
-    int xIndices[2];
-    int i;
-    for (i = 0; i < strlen(str); i++) {
-        if (str[i] == 'x') {
-            if (xCount == 2) return 0;
-            xIndices[xCount] = i;
-            xCount++;
-        } else if (str[i] < '0' || str[i] > '9') {
-            return 0;
-        }
-    }
-    
-    if (xCount != 2) return 0;
-    char * buffer = (char *)malloc(strlen(str) + 1);
-    
-    bzero(buffer, strlen(str) + 1);
-    memcpy(buffer, str, xIndices[0]);
-    dims->x = atoi(buffer);
-    
-    bzero(buffer, strlen(str) + 1);
-    memcpy(buffer, &str[xIndices[0] + 1], xIndices[1] - xIndices[0] - 1);
-    dims->y = atoi(buffer);
-    
-    bzero(buffer, strlen(str) + 1);
-    strcpy(buffer, &str[xIndices[1] + 1]);
-    dims->z = atoi(buffer);
-    
-    free(buffer);
-    return 1;
 }
