@@ -5,12 +5,8 @@
 
 typedef struct {
     RotationBasis symmetries;
-} HSSaveParameters;
-
-typedef struct {
-    CuboidDimensions dimensions;
-    HSSaveParameters params;
-} HSRunParameters;
+    int maxDepth;
+} HSParameters;
 
 /***
  * 
@@ -25,10 +21,10 @@ typedef struct {
     CLArgumentList * (*default_arguments)();
     
     /* creates a new indexer with command line arguments */
-    int (*initialize)(HSRunParameters params, CLArgumentList * arguments, void ** userData);
+    int (*initialize)(HSParameters params, CLArgumentList * arguments, void ** userData);
     
     /* loads a saved indexer from a file */
-    int (*load)(HSSaveParameters params, FILE * fp, void ** userData);
+    int (*load)(HSParameters params, FILE * fp, void ** userData);
     
     /* saves an indexer to a file */
     void (*save)(void * userData, FILE * fp);

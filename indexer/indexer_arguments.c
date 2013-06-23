@@ -14,6 +14,7 @@ int indexer_process_arguments(CLArgumentList * args, IndexerArguments * out) {
         alg_list_release(out->search.operations);
         return 0;
     }
+    out->symmetries.dims = out->search.dimensions;
     return 1;
 }
 

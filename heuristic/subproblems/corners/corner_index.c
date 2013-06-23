@@ -8,17 +8,18 @@ CLArgumentList * corner_index_default_arguments() {
     return cl_argument_list_new();
 }
 
-int corner_index_initialize(HSRunParameters params, CLArgumentList * arguments, void ** userData) {
+int corner_index_initialize(HSParameters params, CLArgumentList * arguments, void ** userData) {
     CIData * data = (CIData *)malloc(sizeof(CIData));
+    CuboidDimensions dimensions = params.symmetries.dims;
     int i;
     for (i = 0; i < 3; i++) {
-        data->quartersAllowed[i] = cuboid_validate_quarter_turn(params.dimensions, i);
+        data->quartersAllowed[i] = cuboid_validate_quarter_turn(dimensions, i);
     }
     *userData = data;
     return 1;
 }
 
-int corner_index_load(HSSaveParameters params, FILE * fp, void ** userData) {
+int corner_index_load(HSParameters params, FILE * fp, void ** userData) {
     CIData * data = (CIData *)malloc(sizeof(CIData));
     int i;
     for (i = 0; i < 3; i++) {
