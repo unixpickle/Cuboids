@@ -11,3 +11,4 @@ typedef struct {
 
 CLArgumentList * indexer_default_arguments();
 int indexer_process_arguments(CLArgumentList * args, IndexerArguments * out);
+void indexer_remove_all_defaults(CLArgumentList * args);

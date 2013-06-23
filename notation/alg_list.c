@@ -78,6 +78,12 @@ AlgList * alg_list_parse(const char * buffer, CuboidDimensions dims) {
             return NULL;
         }
         Cuboid * cuboid = algorithm_to_cuboid(algo, dims);
+        if (!cuboid) {
+            algorithm_free(algo);
+            alg_list_release(list);
+            free(tmpBuffer);
+            return NULL;
+        }
         AlgListEntry e;
         e.algorithm = algo;
         e.cuboid = cuboid;

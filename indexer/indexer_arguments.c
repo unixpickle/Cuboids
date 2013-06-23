@@ -24,6 +24,19 @@ int indexer_process_arguments(CLArgumentList * args, IndexerArguments * out) {
     return 1;
 }
 
+void indexer_remove_all_defaults(CLArgumentList * args) {
+    CLArgumentList * defaults = indexer_default_arguments();
+    int i;
+    for (i = 0; i < cl_argument_list_count(defaults); i++) {
+        int j;
+        const char * name = cl_argument_list_get(defaults, i)->name;
+        while ((j = cl_argument_list_find(args, name)) >= 0) {
+            cl_argument_list_remove(args, j);
+        }
+    }
+    cl_argument_list_free(defaults);
+}
+
 /***********
  * Private *
  ***********/
