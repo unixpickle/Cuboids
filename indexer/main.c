@@ -1,13 +1,11 @@
-#include "indexer_arguments.h"
+#include "heuristic_index.h"
 #include "arguments/parser.h"
 #include "heuristic/heuristic_io.h"
 #include "search/cuboid.h"
-#include "algebra/rotation_cosets.h"
 #include <stdio.h>
 
-static Heuristic * heuristic = NULL;
+static HeuristicIndex * heuristicIndex = NULL;
 static IndexerArguments arguments;
-static Cuboid ** inverseTriggers = NULL;
 static CSSearchContext * searchContext;
 static pthread_mutex_t globalMutex = PTHREAD_MUTEX_INITIALIZER;
 static int currentDepth = 0;
@@ -16,7 +14,6 @@ static const char * fileName;
 
 void print_usage(const char * name);
 CLArgumentList * process_arguments(int argc, const char * argv[]);
-HSParameters heuristic_parameters(IndexerArguments args);
 
 int generate_heuristic(const char * name, CLArgumentList * args);
 int run_search();
@@ -60,7 +57,7 @@ int main(int argc, const char * argv[]) {
     if (!result) {
         fprintf(stderr, "error: failed to launch search.\n");
         alg_list_release(arguments.operations);
-        heuristic_free(heuristic);
+        heuristic_index_free(heuristicIndex);
         return 1;
     }
     return 0;
@@ -83,46 +80,13 @@ CLArgumentList * process_arguments(int argc, const char * argv[]) {
     return result;
 }
 
-HSParameters heuristic_parameters(IndexerArguments args) {
-    HSParameters params;
-    params.symmetries = args.symmetries;
-    params.maxDepth = args.maxDepth;
-    return params;
-}
-
 /*********************
  * Commencing action *
  *********************/
 
 int generate_heuristic(const char * name, CLArgumentList * args) {
-    HSParameters params = heuristic_parameters(arguments);
-    heuristic = heuristic_create(params, args, name);
-    if (!heuristic) return 0;
-    
-    int dataSize = heuristic->subproblem.data_size(heuristic->spUserData);
-    int nodeDepth = dataSize < 4 ? dataSize : 4;
-    
-    // generate cosets
-    RotationGroup * symmetries = heuristic->symmetries;
-    RotationBasis basis = rotation_basis_standard(heuristic->params.symmetries.dims);
-    RotationGroup * group = rotation_group_create_basis(basis);
-    RotationCosets * cosets = rotation_cosets_create(group, symmetries);
-    
-    int cosetCount = rotation_cosets_count(cosets);
-    inverseTriggers = (Cuboid **)malloc(sizeof(void *) * cosetCount);
-    
-    int i;
-    for (i = 0; i < cosetCount; i++) {
-        DataList * dl = data_list_create(dataSize, 2, nodeDepth);
-        heuristic_add_coset(heuristic, dl);
-        Cuboid * cuboid = rotation_cosets_get_trigger(cosets, i);
-        Cuboid * inv = cuboid_inverse(cuboid);
-        inverseTriggers[i] = inv;
-    }
-    
-    rotation_group_release(group);
-    rotation_cosets_release(cosets);
-    return 1;
+    heuristicIndex = heuristic_index_create(args, arguments, name);
+    return (heuristicIndex != NULL);
 }
 
 int run_search() {
@@ -165,8 +129,9 @@ CSCallbacks generate_callbacks() {
 void indexer_handle_progress(void * data) {
     pthread_mutex_lock(&globalMutex);
     long long value = __sync_fetch_and_or(&nodesAdded, 0);
-    printf("Expanded %lld nodes [depth %d, cosetCount = %d].\n", 
-           value, currentDepth, heuristic->cosetCount);
+    printf("Found %lld sequences [depth %d, %d cosets, %d angles].\n", 
+           value, currentDepth, heuristicIndex->heuristic->cosetCount,
+           heuristicIndex->heuristic->angles->numDistinct);
     pthread_mutex_unlock(&globalMutex);
 }
 
@@ -182,43 +147,20 @@ int indexer_accepts_sequence(void * data, const int * sequence, int len, int dep
 }
 
 int indexer_accepts_cuboid(void * data, const Cuboid * cuboid, Cuboid * cache, int depthRem) {
-    // compare this cuboid to our first coset for pruning...
-    cuboid_multiply(cache, cuboid, inverseTriggers[0]);
-    int value = heuristic_coset_value(heuristic, cache, 0, 0);
-    if (value < 0) return 1;
-    if (value < currentDepth - depthRem) {
-        return 0;
-    }
-    return 1;
+    pthread_mutex_lock(&globalMutex);
+    int depth = currentDepth - depthRem;
+    int flag = heuristic_index_accepts_node(heuristicIndex, depth, currentDepth,
+                                            cuboid, cache);
+    pthread_mutex_unlock(&globalMutex);
+    return flag;
 }
 
 void indexer_handle_cuboid(void * data, const Cuboid * cuboid, Cuboid * cache,
-                           const int * sequence, int len) {
-    uint8_t lenData[2] = {len & 0xff, (len >> 8) & 0xff};
-        
-    int dataSize = heuristic->subproblem.data_size(heuristic->spUserData);
-    uint8_t * heuristicData = (uint8_t *)malloc(dataSize);
-    Cuboid * temp = cuboid_create(cuboid->dimensions);
-    
-    int i, addedSomething = 0;
-    for (i = 0; i < heuristic->cosetCount; i++) {
-        cuboid_multiply(temp, cuboid, inverseTriggers[i]);
-        DataList * dl = heuristic->cosets[i];
-        heuristic->subproblem.get_data(heuristic->spUserData, temp,
-                                       heuristicData, 0);
-        pthread_mutex_lock(&globalMutex);
-        DataListNode * base = data_list_find_base(dl, heuristicData, 1);
-        if (data_list_base_add(base, heuristicData, lenData)) {
-            addedSomething = 1;
-        }
-        pthread_mutex_unlock(&globalMutex);
-    }
-    
-    if (addedSomething) {
+                           const int * sequence, int len) {    
+    int added = heuristic_index_add_node(heuristicIndex, cuboid, cache, len);
+    if (added) {
         __sync_fetch_and_add(&nodesAdded, 1);
     }
-    cuboid_free(temp);
-    free(heuristicData);
 }
 
 void indexer_handle_save_data(void * data, CSSearchState * save) {
@@ -228,18 +170,12 @@ void indexer_handle_save_data(void * data, CSSearchState * save) {
 
 void indexer_handle_finished(void * data) {
     cs_context_release(searchContext);
-    // free inverse triggers
-    int i;
-    for (i = 0; i < heuristic->cosetCount; i++) {
-        cuboid_free(inverseTriggers[i]);
-    }
-    free(inverseTriggers);
     
     puts("Writing to output file...");
     FILE * fp = fopen(fileName, "w");
-    save_heuristic(heuristic, fp);
+    save_heuristic(heuristicIndex->heuristic, fp);
     fclose(fp);
-    heuristic_free(heuristic);
+    heuristic_index_free(heuristicIndex);
     
     exit(0);
 }

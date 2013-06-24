@@ -1,4 +1,4 @@
-SOURCES=indexer_arguments.c
+SOURCES=indexer_arguments.c heuristic_index.c
 
 indexer: resources
 	gcc main.c $(wildcard ../*/build/*.o) -I../ -lpthread -o indexer

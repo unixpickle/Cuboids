@@ -61,6 +61,8 @@ int heuristic_data_size(Heuristic * heuristic) {
  ********************/
 
 void heuristic_add_coset(Heuristic * heuristic, DataList * coset) {
+    assert(coset->headerLen > 0);
+    assert(coset->dataSize == heuristic_data_size(heuristic));
     if (!heuristic->cosets) {
         heuristic->cosets = (DataList **)malloc(sizeof(void *));
     } else {
@@ -104,7 +106,7 @@ int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid
         for (cosetIdx = 0; cosetIdx < heuristic->cosetCount; cosetIdx++) {
             DataList * coset = heuristic->cosets[cosetIdx];
             assert(coset->dataSize == dataSize);
-            assert(coset->headerLen == 2);
+            assert(coset->headerLen > 0);
             for (angle = 0; angle < angleCount; angle++) {
                 heuristic_get_data(heuristic, scratchpad, angle, heuristicData);
                 int thisValue = _heuristic_lookup(coset, heuristicData);
@@ -158,5 +160,5 @@ static int _heuristic_lookup(DataList * list, const uint8_t * data) {
     if (!data_list_base_find(base, data, &header)) {
         return -1;
     }
-    return header[0] | (header[1] << 8);
+    return header[0];
 }
