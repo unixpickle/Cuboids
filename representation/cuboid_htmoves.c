@@ -78,13 +78,10 @@ static void _ht_face_turn_edges(Cuboid * out, CuboidMovesAxis axis, int offset) 
 static void _ht_face_turn_centers(Cuboid * out, CuboidMovesAxis axis, int offset) {
     int face = cuboid_face_for_face_turn(axis, offset);
     int count = cuboid_count_centers_for_face(out, face);
-    int i, w, h;
-    cuboid_center_dimensions(out->dimensions, face, &w, &h);
+    int i;
     for (i = 0; i < count; i++) {
-        int sourceX, sourceY;
-        ht_center_point_from_index(w, h, i, &sourceX, &sourceY);
-        ht_rotate_center_point(&sourceX, &sourceY);
-        int sourceIndex = ht_center_point_to_index(w, h, sourceX, sourceY);
+        // 180 degree rotations are essentially an index complement
+        int sourceIndex = count - i - 1;
         
         int destIndex = cuboid_center_index(out, face, i);
         CuboidCenter center;
