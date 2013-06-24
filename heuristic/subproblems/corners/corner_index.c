@@ -66,6 +66,12 @@ int corner_index_angle_count(void * userData) {
     return 1;
 }
 
+int corner_index_angles_are_equivalent(void * userData, int a1, int a2) {
+    puts("corner_index_angles_are_equivalent() should not be called");
+    abort();
+    return 0;
+}
+
 void corner_index_get_data(void * userData, const Cuboid * cb, uint8_t * out, int angle) {
     assert(angle == 0);
     int i;

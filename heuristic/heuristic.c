@@ -1,9 +1,13 @@
 #include "heuristic.h"
 
+typedef struct {
+    int coset;
+    int angle;
+} HDataAddress;
+
 static int _heuristic_find_subproblem(const char * name, HSubproblem * sp);
-static void _generate_symmetries(Heuristic * heuristic, HSParameters params);
-static int _heuristic_lookup(DataList * list, const uint8_t * data, int maxDepth);
-static int _heuristic_lookup_or_fail(DataList * list, const uint8_t * data);
+static void _generate_symmetry_data(Heuristic * heuristic, HSParameters params);
+static int _heuristic_lookup(DataList * list, const uint8_t * data);
 
 Heuristic * heuristic_create(HSParameters params, CLArgumentList * args, const char * spName) {
     HSubproblem subproblem;
@@ -19,7 +23,7 @@ Heuristic * heuristic_create(HSParameters params, CLArgumentList * args, const c
     heuristic->subproblem = subproblem;
     heuristic->spUserData = userData;
     heuristic->params = params;
-    _generate_symmetries(heuristic, params);
+    _generate_symmetry_data(heuristic, params);
     return heuristic;
 }
 
@@ -39,6 +43,22 @@ void heuristic_free(Heuristic * heuristic) {
     free(heuristic);
 }
 
+/************
+ * Metadata *
+ ************/
+
+int heuristic_data_size(Heuristic * heuristic) {
+    int dataLen = heuristic->subproblem.data_size(heuristic->spUserData);
+    if (heuristic->angles->numDistinct > 1) {
+        dataLen++;
+    }
+    return dataLen;
+}
+
+/********************
+ * Indexer features *
+ ********************/
+
 void heuristic_add_coset(Heuristic * heuristic, DataList * coset) {
     if (!heuristic->cosets) {
         heuristic->cosets = (DataList **)malloc(sizeof(void *));
@@ -50,9 +70,22 @@ void heuristic_add_coset(Heuristic * heuristic, DataList * coset) {
     heuristic->cosetCount++;
 }
 
+void heuristic_get_data(Heuristic * heuristic, const Cuboid * cuboid,
+                        int angle, uint8_t * dataOut) {
+    heuristic->subproblem.get_data(heuristic->spUserData, cuboid, dataOut, angle);
+    if (heuristic->angles->numDistinct > 1) {
+        int saveAngle = heuristic->angles->saveAngles[angle];
+        dataOut[heuristic_data_size(heuristic) - 1] = saveAngle;
+    }
+}
+
+/***********
+ * Lookups *
+ ***********/
+
 int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid * scratchpad) {
     int angleCount = heuristic->subproblem.angle_count(heuristic->spUserData);
-    int dataSize = heuristic->subproblem.data_size(heuristic->spUserData);
+    int dataSize = heuristic_data_size(heuristic);
     int * angleValues = (int *)malloc(sizeof(int) * angleCount);
     uint8_t * heuristicData = (uint8_t *)malloc(dataSize);
     
@@ -72,11 +105,9 @@ int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid
             assert(coset->dataSize == dataSize);
             assert(coset->headerLen == 2);
             for (angle = 0; angle < angleCount; angle++) {
-                heuristic->subproblem.get_data(heuristic->spUserData, scratchpad,
-                                               heuristicData, angle);
-                int thisValue = _heuristic_lookup(coset, heuristicData,
-                                                  heuristic->params.maxDepth);
-                if (thisValue < angleValues[angle]) {
+                heuristic_get_data(heuristic, scratchpad, angle, heuristicData);
+                int thisValue = _heuristic_lookup(coset, heuristicData);
+                if (thisValue < angleValues[angle] && thisValue >= 0) {
                     angleValues[angle] = thisValue;
                 }
             }
@@ -95,20 +126,9 @@ int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid
     return maxValue;
 }
 
-int heuristic_coset_value(Heuristic * heuristic, const Cuboid * cuboid,
-                          int cosetIdx, int angle) {
-    assert(cosetIdx >= 0 && cosetIdx < heuristic->cosetCount);
-    DataList * coset = heuristic->cosets[cosetIdx];
-    int dataSize = heuristic->subproblem.data_size(heuristic->spUserData);
-    uint8_t * heuristicData = (uint8_t *)malloc(dataSize);
-    
-    heuristic->subproblem.get_data(heuristic->spUserData, cuboid,
-                                   heuristicData, angle);
-
-    int value = _heuristic_lookup_or_fail(coset, heuristicData);
-    free(heuristicData);
-    return value;
-}
+/***********
+ * Private *
+ ***********/
 
 static int _heuristic_find_subproblem(const char * name, HSubproblem * sp) {
     int spCount = sizeof(HSubproblemTable) / sizeof(HSubproblem);
@@ -123,18 +143,14 @@ static int _heuristic_find_subproblem(const char * name, HSubproblem * sp) {
     return 0;
 }
 
-static void _generate_symmetries(Heuristic * heuristic, HSParameters params) {
+static void _generate_symmetry_data(Heuristic * heuristic, HSParameters params) {
     RotationBasis symmetries = params.symmetries;
     heuristic->symmetries = rotation_group_create_basis(symmetries);
+    heuristic->angles = heuristic_angles_for_subproblem(heuristic->subproblem,
+                                                        heuristic->spUserData);
 }
 
-static int _heuristic_lookup(DataList * list, const uint8_t * data, int maxDepth) {
-    int result = _heuristic_lookup_or_fail(list, data);
-    if (result < 0) return maxDepth + 1;
-    return result;
-}
-
-static int _heuristic_lookup_or_fail(DataList * list, const uint8_t * data) {
+static int _heuristic_lookup(DataList * list, const uint8_t * data) {
     DataListNode * base = data_list_find_base(list, data, 0);
     if (!base) return -1;
     uint8_t * header;

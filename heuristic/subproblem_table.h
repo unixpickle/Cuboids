@@ -13,6 +13,7 @@ const static HSubproblem HSubproblemTable[] = {
         corner_index_supports_dimensions,
         corner_index_data_size,
         corner_index_angle_count,
+        corner_index_angles_are_equivalent,
         corner_index_get_data,
         corner_index_completed
     }

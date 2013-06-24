@@ -1,3 +1,6 @@
+#ifndef __SUBPROBLEM_TYPE_H__
+#define __SUBPROBLEM_TYPE_H__
+
 #include "algebra/rotation_group.h"
 #include "arguments/arguments.h"
 #include <stdint.h>
@@ -43,9 +46,17 @@ typedef struct {
      */
     int (*angle_count)(void * userData);
     
+    /*
+     * returns whether an angle can be saved poperly indexed by a different
+     * angle given the parameters which the subproblem was initialized with.
+     */
+    int (*angles_are_equivalent)(void * userData, int angle1, int angle2);
+    
     /* returns the data for a specified angle index; 0 will suffice for this during indexing */
     void (*get_data)(void * userData, const Cuboid * cb, uint8_t * out, int angle);
     
     /* called to indicate that the heuristic is no longer needed */
     void (*completed)(void * userData);
 } HSubproblem;
+
+#endif
