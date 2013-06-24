@@ -39,6 +39,7 @@ void heuristic_free(Heuristic * heuristic) {
     }
     
     heuristic->subproblem.completed(heuristic->spUserData);
+    heuristic_angles_free(heuristic->angles);
     
     free(heuristic);
 }

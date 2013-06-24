@@ -2,6 +2,7 @@
 #define __HEURISTIC_IO_H__
 
 #include "heuristic_list.h"
+#include "heuristic.h"
 #include "saving/save_data_list.h"
 
 void save_heuristic(Heuristic * heuristic, FILE * fp);

@@ -1,17 +1,22 @@
 #include "heuristic_io.h"
 
+#define CHECK_HEURISTIC_ANGLES 1
+
 static void _save_heuristic_parameters(HSParameters params, FILE * fp);
 static void _save_cosets(Heuristic * heuristic, FILE * fp);
+static void _save_heuristic_angles(HeuristicAngles * angles, FILE * fp);
 
 static int _load_subproblem(FILE * fp, HSubproblem * spOut);
 static int _load_heuristic_parameters(FILE * fp, HSParameters * params);
 static int _load_cosets(Heuristic * heuristic, FILE * fp);
+static HeuristicAngles * _load_heuristic_angles(FILE * fp);
 static int _initialize_subproblem(Heuristic * heuristic, FILE * fp);
 static void _generate_symmetries(Heuristic * heuristic);
 
 void save_heuristic(Heuristic * heuristic, FILE * fp) {
     save_string(heuristic->subproblem.name, fp);
     _save_heuristic_parameters(heuristic->params, fp);
+    _save_heuristic_angles(heuristic->angles, fp);
     _save_cosets(heuristic, fp);
     heuristic->subproblem.save(heuristic->spUserData, fp);
 }
@@ -28,12 +33,19 @@ Heuristic * load_heuristic(FILE * fp, CuboidDimensions newDims) {
         return NULL;
     }
     
+    HeuristicAngles * angles = _load_heuristic_angles(fp);
+    if (!angles) {
+        return NULL;
+    }
+    
     Heuristic * heuristic = (Heuristic *)malloc(sizeof(Heuristic));
     bzero(heuristic, sizeof(Heuristic));
     heuristic->subproblem = subproblem;
     heuristic->params = params;
+    heuristic->angles = angles;
     if (!_load_cosets(heuristic, fp)) {
         free(heuristic);
+        heuristic_angles_free(angles);
         return NULL;
     }
     
@@ -43,6 +55,7 @@ Heuristic * load_heuristic(FILE * fp, CuboidDimensions newDims) {
             data_list_free(heuristic->cosets[i]);
         }
         if (heuristic->cosets) free(heuristic->cosets);
+        heuristic_angles_free(angles);
         free(heuristic);
         return NULL;
     }
@@ -120,6 +133,22 @@ static void _save_cosets(Heuristic * heuristic, FILE * fp) {
     }
 }
 
+static void _save_heuristic_angles(HeuristicAngles * angles, FILE * fp) {
+    uint8_t angleCount = angles->numAngles;
+    uint8_t distinctCount = angles->numDistinct;
+    fwrite(&angleCount, 1, 1, fp);
+    fwrite(&distinctCount, 1, 1, fp);
+    int i;
+    for (i = 0; i < angleCount; i++) {
+        uint8_t saveIndex = angles->saveAngles[i];
+        fwrite(&saveIndex, 1, 1, fp);
+    }
+    for (i = 0; i < distinctCount; i++) {
+        uint8_t distIndex = angles->distinct[i];
+        fwrite(&distIndex, 1, 1, fp);
+    }
+}
+
 /********************
  * Private: loading *
  ********************/
@@ -178,9 +207,50 @@ static int _load_cosets(Heuristic * heuristic, FILE * fp) {
     return 1;
 }
 
+static HeuristicAngles * _load_heuristic_angles(FILE * fp) {
+    uint8_t angleCount, distinctCount;
+    if (!load_uint8(&angleCount, fp)) return NULL;
+    if (!load_uint8(&distinctCount, fp)) return NULL;
+    int i;
+    HeuristicAngles * angles = (HeuristicAngles *)malloc(sizeof(HeuristicAngles));
+    angles->numAngles = angleCount;
+    angles->numDistinct = distinctCount;
+    angles->saveAngles = (int *)malloc(sizeof(int) * angleCount);
+    angles->distinct = (int *)malloc(sizeof(int) * distinctCount);
+    for (i = 0; i < angleCount; i++) {
+        uint8_t angle;
+        if (!load_uint8(&angle, fp)) {
+            heuristic_angles_free(angles);
+            return NULL;
+        }
+        angles->saveAngles[i] = angle;
+    }
+    for (i = 0; i < distinctCount; i++) {
+        uint8_t angle;
+        if (!load_uint8(&angle, fp)) {
+            heuristic_angles_free(angles);
+            return NULL;
+        }
+        angles->distinct[i] = angle;
+    }
+    return angles;
+}
+
 static int _initialize_subproblem(Heuristic * heuristic, FILE * fp) {
-    return heuristic->subproblem.load(heuristic->params, fp,
-                                      &heuristic->spUserData);
+    int status = heuristic->subproblem.load(heuristic->params, fp,
+                                            &heuristic->spUserData);
+    if (!status) return status;
+    
+#if CHECK_HEURISTIC_ANGLES
+    // make SURE that our heuristic views the angles the same way it did upon saving.
+    HeuristicAngles * gend = heuristic_angles_for_subproblem(heuristic->subproblem,
+                                                             heuristic->spUserData);
+    assert(gend != NULL);
+    assert(heuristic_angles_equal(gend, heuristic->angles));
+    heuristic_angles_free(gend);
+#endif
+    
+    return 1;
 }
 
 static void _generate_symmetries(Heuristic * heuristic) {
