@@ -11,6 +11,8 @@ typedef struct {
     int * sequence;
     int currentDepth;
     int depth;
+    
+    time_t lastUpdate;
 } BSThreadContext;
 
 static BSThreadContext * _bs_thread_context_create(SRange range, int depth, BSSearchContext * context);
@@ -185,6 +187,7 @@ static BSThreadContext * _bs_thread_context_create(SRange range, int depth,
     tc->depth = depth;
     tc->context = context;
     tc->range = range;
+    tc->lastUpdate = time(NULL);
     return tc;
 }
 
@@ -200,6 +203,7 @@ static BSThreadContext * _bs_thread_context_load(BSThreadState * save, int depth
     tc->depth = depth;
     tc->context = ctx;
     tc->range = range;
+    tc->lastUpdate = time(NULL);
     return tc;
 }
 
@@ -405,7 +409,8 @@ static int _bs_recursive_search(BSThreadContext * context) {
         return 1;
     }
     context->nodeCount++;
-    if (context->nodeCount > context->context->settings.nodeInterval) {
+    if (context->nodeCount > context->context->settings.nodeInterval ||
+        context->lastUpdate < time(NULL)) {
         if (!_bs_recursive_search_progress_update(context)) return 0;
     }
     
@@ -440,6 +445,7 @@ static int _bs_recursive_search_progress_update(BSThreadContext * _context) {
     context->progress.nodesPruned += _context->pruneCount;
     _context->nodeCount = 0;
     _context->pruneCount = 0;
+    _context->lastUpdate = time(NULL);
     
     BSCallbacks callbacks = context->callbacks;
     callbacks.handle_progress_update(callbacks.userData);

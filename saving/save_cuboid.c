@@ -1,11 +1,9 @@
 #include "save_cuboid.h"
 
-static void _save_cuboid_dimensions(CuboidDimensions dims, FILE * fp);
 static void _save_cuboid_edges(const Cuboid * cuboid, FILE * fp);
 static void _save_cuboid_centers(const Cuboid * cuboid, FILE * fp);
 static void _save_cuboid_corners(const Cuboid * cuboid, FILE * fp);
 
-static int _load_cuboid_dimensions(CuboidDimensions * dims, FILE * fp);
 static int _load_into_cuboid(Cuboid * cuboid, FILE * fp);
 static int _load_cuboid_edges(Cuboid * cuboid, FILE * fp);
 static int _load_cuboid_centers(Cuboid * cuboid, FILE * fp);
@@ -14,7 +12,7 @@ static int _load_cuboid_corners(Cuboid * cuboid, FILE * fp);
 
 void save_cuboid(const Cuboid * cuboid, FILE * fp) {
     fprintf(fp, "<CUBOID");
-    _save_cuboid_dimensions(cuboid->dimensions, fp);
+    save_cuboid_dimensions(cuboid->dimensions, fp);
     _save_cuboid_edges(cuboid, fp);
     _save_cuboid_centers(cuboid, fp);
     _save_cuboid_corners(cuboid, fp);
@@ -27,7 +25,7 @@ Cuboid * load_cuboid(FILE * fp) {
     if (memcmp(buffer, "<CUBOID", 7) != 0) return NULL;
     
     CuboidDimensions dims;
-    if (!_load_cuboid_dimensions(&dims, fp)) return NULL;
+    if (!load_cuboid_dimensions(&dims, fp)) return NULL;
     Cuboid * cuboid = cuboid_create(dims);
     
     if (!_load_into_cuboid(cuboid, fp)) {
@@ -44,16 +42,27 @@ Cuboid * load_cuboid(FILE * fp) {
     return cuboid;
 }
 
-/******************
- * Private Saving *
- ******************/
-
-static void _save_cuboid_dimensions(CuboidDimensions dims, FILE * fp) {
+void save_cuboid_dimensions(CuboidDimensions dims, FILE * fp) {
     uint8_t x = dims.x, y = dims.y, z = dims.z;
     fwrite(&x, 1, 1, fp);
     fwrite(&y, 1, 1, fp);
     fwrite(&z, 1, 1, fp);
 }
+
+int load_cuboid_dimensions(CuboidDimensions * dims, FILE * fp) {
+    uint8_t x, y, z;
+    if (fread(&x, 1, 1, fp) != 1) return 0;
+    if (fread(&y, 1, 1, fp) != 1) return 0;
+    if (fread(&z, 1, 1, fp) != 1) return 0;
+    dims->x = x;
+    dims->y = y;
+    dims->z = z;
+    return 1;
+}
+
+/******************
+ * Private Saving *
+ ******************/
 
 static void _save_cuboid_edges(const Cuboid * cuboid, FILE * fp) {
     int count = cuboid_count_edges(cuboid);
@@ -95,17 +104,6 @@ static void _save_cuboid_corners(const Cuboid * cuboid, FILE * fp) {
 /*******************
  * Private Loading *
  *******************/
-
-static int _load_cuboid_dimensions(CuboidDimensions * dims, FILE * fp) {
-    uint8_t x, y, z;
-    if (fread(&x, 1, 1, fp) != 1) return 0;
-    if (fread(&y, 1, 1, fp) != 1) return 0;
-    if (fread(&z, 1, 1, fp) != 1) return 0;
-    dims->x = x;
-    dims->y = y;
-    dims->z = z;
-    return 1;
-}
 
 static int _load_into_cuboid(Cuboid * cuboid, FILE * fp) {
     if (!_load_cuboid_edges(cuboid, fp)) return 0;

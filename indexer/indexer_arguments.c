@@ -13,6 +13,7 @@ CLArgumentList * indexer_default_arguments() {
     cl_argument_list_add(args, cl_argument_new_string("dimensions", "3x3x3"));
     cl_argument_list_add(args, cl_argument_new_integer("threads", 1));
     cl_argument_list_add(args, cl_argument_new_integer("maxdepth", 8));
+    cl_argument_list_add(args, cl_argument_new_integer("sharddepth", 3));
     return args;
 }
 
@@ -70,6 +71,11 @@ static int _process_numerical_args(CLArgumentList * args, IndexerArguments * out
     assert(index >= 0);
     arg = cl_argument_list_get(args, index);
     out->maxDepth = arg->contents.integer.value;
+    
+    index = cl_argument_list_find(args, "sharddepth");
+    assert(index >= 0);
+    arg = cl_argument_list_get(args, index);
+    out->shardDepth = arg->contents.integer.value;
     
     return 1;
 }

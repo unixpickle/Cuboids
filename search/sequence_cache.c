@@ -49,6 +49,7 @@ const Cuboid * sequence_cache_make_cuboid(SequenceCache * cache, AlgList * list,
             cuboid_multiply(spotCuboid, opCuboid, cache->cuboids[i - 1]);
         }
     }
+        
     cache->lastLength = len;
     return cache->cuboids[len - 1];
 }

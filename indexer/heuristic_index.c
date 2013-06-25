@@ -1,5 +1,7 @@
 #include "heuristic_index.h"
 
+#define kNodeDepth 3
+
 static HSParameters _process_heuristic_parameters(IndexerArguments args);
 static int _data_list_append(DataList * dl, const uint8_t * data, const uint8_t * header);
 
@@ -10,7 +12,8 @@ HeuristicIndex * heuristic_index_create(CLArgumentList * args, IndexerArguments 
     if (!heuristic) return 0;
     
     int dataSize = heuristic_data_size(heuristic);
-    int nodeDepth = dataSize < 4 ? dataSize : 4;
+    int shardDepth = indexArgs.shardDepth;
+    int nodeDepth = dataSize < shardDepth ? dataSize : shardDepth;
     
     // generate cosets
     RotationGroup * symmetries = heuristic->symmetries;
@@ -86,6 +89,7 @@ int heuristic_index_accepts_node(HeuristicIndex * index, int depth, int idaDepth
         header[1] = idaDepth;
         accepts = 1;
     }
+    free(indexData);
     return accepts;
 }
 

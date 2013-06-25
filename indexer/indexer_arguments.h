@@ -5,6 +5,7 @@
 typedef struct {
     RotationBasis symmetries;
     int maxDepth;
+    int shardDepth;
     int threadCount;
     AlgList * operations;
 } IndexerArguments;
