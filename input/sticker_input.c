@@ -72,7 +72,7 @@ Cuboid * input_stickermap_to_cuboid(CuboidDimensions dims) {
 static int _read_face(StickerMap * map, int face) {
     int numBytes = stickermap_count_stickers_for_face(map, face);
     uint32_t index = stickermap_face_start_index(map, face);
-    int i, numRead, hitEnter = 0;
+    int i, numRead = 0, hitEnter = 0;
     for (i = 0; i < numBytes; i++) {
         int chr = fgetc(stdin);
         if (chr == EOF) return 0;
