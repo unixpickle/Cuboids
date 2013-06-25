@@ -147,17 +147,28 @@ int indexer_accepts_sequence(void * data, const int * sequence, int len, int dep
 }
 
 int indexer_accepts_cuboid(void * data, const Cuboid * cuboid, Cuboid * cache, int depthRem) {
-    pthread_mutex_lock(&globalMutex);
+    if (arguments.threadCount > 1) {
+        pthread_mutex_lock(&globalMutex);
+    }
     int depth = currentDepth - depthRem;
     int flag = heuristic_index_accepts_node(heuristicIndex, depth, currentDepth,
                                             cuboid, cache);
-    pthread_mutex_unlock(&globalMutex);
+    if (arguments.threadCount > 1) {
+        pthread_mutex_unlock(&globalMutex);
+    }
+
     return flag;
 }
 
 void indexer_handle_cuboid(void * data, const Cuboid * cuboid, Cuboid * cache,
-                           const int * sequence, int len) {    
+                           const int * sequence, int len) {
+    if (arguments.threadCount > 1) {
+        pthread_mutex_lock(&globalMutex);
+    }
     int added = heuristic_index_add_node(heuristicIndex, cuboid, cache, len);
+    if (arguments.threadCount > 1) {
+        pthread_mutex_unlock(&globalMutex);
+    }
     if (added) {
         __sync_fetch_and_add(&nodesAdded, 1);
     }

@@ -18,9 +18,11 @@ CLArgumentList * eo_index_default_arguments() {
 
 int eo_index_initialize(HSParameters params, CLArgumentList * arguments, void ** userData) {
     EOIndexData * data = (EOIndexData *)malloc(sizeof(EOIndexData));
+    bzero(data, sizeof(EOIndexData));
     data->symmetries = params.symmetries;
     *userData = data;
     _generate_rotations(data);
+        
     return 1;
 }
 
@@ -108,12 +110,15 @@ void eo_index_get_data(void * userData, const Cuboid * cb, uint8_t * out, int an
     if (angle == 1) {
         if (eo_index_angles_are_equivalent(userData, 1, 0)) {
             dedgeRotation = data->zRotation;
+            assert(dedgeRotation != NULL);
         }
     } else if (angle == 2) {
         if (eo_index_angles_are_equivalent(userData, 2, 0)) {
             dedgeRotation = data->yRotation;
+            assert(dedgeRotation != NULL);
         } else if (eo_index_angles_are_equivalent(userData, 2, 1)) {
             dedgeRotation = data->xRotation;
+            assert(dedgeRotation != NULL);
         }
     }
     bzero(out, eo_index_data_size(userData));
@@ -123,9 +128,9 @@ void eo_index_get_data(void * userData, const Cuboid * cb, uint8_t * out, int an
 void eo_index_completed(void * userData) {
     EOIndexData * data = (EOIndexData *)userData;
     
-    free(data->xRotation);
-    free(data->yRotation);
-    free(data->zRotation);
+    if (data->xRotation) free(data->xRotation);
+    if (data->yRotation) free(data->yRotation);
+    if (data->zRotation) free(data->zRotation);
     free(data);
 }
 
@@ -140,25 +145,32 @@ static void _generate_rotations(EOIndexData * data) {
     Cuboid * rot = algorithm_to_cuboid(alg, dims);
     algorithm_free(alg);
     
-    int edgeCount = cuboid_count_edges(rot);
-    data->xRotation = (uint16_t *)malloc(sizeof(uint16_t) * edgeCount);
-    data->yRotation = (uint16_t *)malloc(sizeof(uint16_t) * edgeCount);
-    data->zRotation = (uint16_t *)malloc(sizeof(uint16_t) * edgeCount);
-    
-    _rotation_to_map(rot, data->xRotation);
-    cuboid_free(rot);
+    if (rot) {
+        int edgeCountX = cuboid_count_edges(rot);
+        data->xRotation = (uint16_t *)malloc(sizeof(uint16_t) * edgeCountX);
+        _rotation_to_map(rot, data->xRotation);
+        cuboid_free(rot);
+    }
     
     alg = algorithm_for_string("y");
     rot = algorithm_to_cuboid(alg, dims);
     algorithm_free(alg);
-    _rotation_to_map(rot, data->yRotation);
-    cuboid_free(rot);
+    if (rot) {
+        int edgeCountY = cuboid_count_edges(rot);
+        data->yRotation = (uint16_t *)malloc(sizeof(uint16_t) * edgeCountY);
+        _rotation_to_map(rot, data->yRotation);
+        cuboid_free(rot);
+    }
     
     alg = algorithm_for_string("z");
     rot = algorithm_to_cuboid(alg, dims);
     algorithm_free(alg);
-    _rotation_to_map(rot, data->zRotation);
-    cuboid_free(rot);
+    if (rot) {
+        int edgeCountZ = cuboid_count_edges(rot);
+        data->zRotation = (uint16_t *)malloc(sizeof(uint16_t) * edgeCountZ);
+        _rotation_to_map(rot, data->zRotation);
+        cuboid_free(rot);
+    }
 }
 
 static void _rotation_to_map(const Cuboid * rotation, uint16_t * edgeSlots) {
