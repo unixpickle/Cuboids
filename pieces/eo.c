@@ -72,7 +72,7 @@ EOContext * eo_context_create(RotationBasis symmetries) {
         _rotation_to_map(rot, context->z);
         cuboid_free(rot);
     }
-    
+        
     return context;
 }
 

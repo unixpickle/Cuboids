@@ -1,7 +1,7 @@
 SRC=$(wildcard *.c)
 
 main: $(SRC) build
-	gcc -c $(SRC) -Wall
+	gcc -O2 -c $(SRC) -Wall
 	mv *.o build/
 
 build:

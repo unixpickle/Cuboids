@@ -2,7 +2,7 @@ SOLVERS=standardpl eopl
 SOLVERS_BUILD=standardpl/build eopl/build
 
 solver: solvers
-	gcc $(wildcard *.c) $(wildcard ../*/build/*.o) -I../ -lpthread -o solver
+	gcc -O2 $(wildcard *.c) $(wildcard ../*/build/*.o) -I../ -lpthread -o solver
 
 solvers: build
 	for dir in $(SOLVERS); do \
