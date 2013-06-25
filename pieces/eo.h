@@ -1,5 +1,13 @@
 #include "representation/cuboid_base.h"
 #include "eo_table.h"
+#include "algebra/rotation_group.h"
+#include "notation/parser.h"
+
+typedef struct {
+    RotationBasis symmetries;
+    // edge coordinate translations
+    uint16_t * x, * y, * z;
+} EOContext;
 
 /**
  * Calculates whether or not the an edge `edge` at the physical
@@ -13,3 +21,10 @@
  */
 uint8_t cuboid_edge_orientation(CuboidEdge edge, int physicalDedge,
                                 int relativeAxis);
+
+EOContext * eo_context_create(RotationBasis symmetries);
+int eo_context_axis_compatibility(EOContext * context, int a1, int a2);
+int eo_context_compact_data_length(EOContext * context);
+void eo_context_get_compact_data(EOContext * context, const Cuboid * cb,
+                                 uint8_t * out, int axis);
+void eo_context_free(EOContext * context);
