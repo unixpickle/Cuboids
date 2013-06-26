@@ -72,13 +72,13 @@ int data_list_base_add(DataListNode * node, const uint8_t * body, const uint8_t 
     long long entrySize = data_list_base_entry_size(node->list);
     assert(entrySize > 0);
 
-    if (node->dataSize == node->dataAlloc) {
-        unsigned long long newSize = node->dataSize;
+    if (node->dataSize + entrySize > node->dataAlloc) {
+        unsigned long long newSize = node->dataAlloc;
         newSize += kBasenodeAllocBuffer * entrySize;
         if (!node->nodeData) {
             node->nodeData = (uint8_t *)malloc(newSize);
         } else {
-            node->nodeData = (uint8_t*)realloc(node->nodeData, newSize);
+            node->nodeData = (uint8_t *)realloc(node->nodeData, newSize);
         }
         node->dataAlloc = newSize;
     }
@@ -138,7 +138,7 @@ static int data_list_node_subnode_index(DataListNode * node, uint8_t subnodeByte
 
 static void data_list_node_add_subnode(DataListNode * node, DataListNode * subnode, int index) {
     if (node->subnodeAlloc == node->subnodeCount) {
-        int newCount = node->subnodeCount + kSubnodeAllocBuffer;
+        int newCount = node->subnodeAlloc + kSubnodeAllocBuffer;
         int newSize = sizeof(void *) * newCount;
         if (node->subnodeAlloc > 0) {
             node->subnodes = (void **)realloc(node->subnodes, newSize);

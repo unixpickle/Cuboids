@@ -102,7 +102,7 @@ int heuristic_index_add_node(HeuristicIndex * index, const Cuboid * cb, Cuboid *
     for (i = 0; i < cosetCount; i++) {
         DataList * coset = index->heuristic->cosets[i];
         Cuboid * rot = index->invTriggers[i];
-        cuboid_multiply(cache, rot, cb); // cache now contains our coset cube
+        cuboid_multiply(cache, cb, rot); // cache now contains our coset cube
         for (j = 0; j < index->heuristic->angles->numDistinct; j++) {
             int angle = index->heuristic->angles->distinct[j];
             heuristic_get_data(index->heuristic, cache, angle, data);

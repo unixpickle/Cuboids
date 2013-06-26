@@ -115,6 +115,7 @@ static int _load_data(uint64_t * lenOut, uint8_t ** dataOut, FILE * fp) {
     if (lenOut[0] > 0) {
         data = (uint8_t *)malloc(lenOut[0]);
         if (fread(data, 1, lenOut[0], fp) != lenOut[0]) {
+            free(data);
             return 0;
         }
     }
