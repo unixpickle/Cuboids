@@ -12,6 +12,8 @@ static int currentDepth = 0;
 static volatile long long nodesAdded = 0;
 static const char * fileName;
 
+CLArgumentList * subproblem_default_arguments(const char * spName);
+
 void print_usage(const char * name);
 CLArgumentList * process_arguments(int argc, const char * argv[]);
 
@@ -37,7 +39,7 @@ int main(int argc, const char * argv[]) {
     fileName = argv[2];
     
     IndexerArguments args;
-    CLArgumentList * list = process_arguments(argc - 3, &argv[3]);
+    CLArgumentList * list = process_arguments(argc, argv);
     if (!list) return 1;
     if (!indexer_process_arguments(list, &arguments)) {
         fprintf(stderr, "error: failed to process arguments.\n");
@@ -63,6 +65,17 @@ int main(int argc, const char * argv[]) {
     return 0;
 }
 
+CLArgumentList * subproblem_default_arguments(const char * spName) {
+    int entryCount = sizeof(HSubproblemTable) / sizeof(HSubproblem);
+    int i;
+    for (i = 0; i < entryCount; i++) {
+        if (strcmp(HSubproblemTable[i].name, spName) == 0) {
+            return HSubproblemTable[i].default_arguments();
+        }
+    }
+    return NULL;
+}
+
 void print_usage(const char * name) {
     fprintf(stderr, "Usage: %s <index type> <output> [--maxdepth=n] [--threads=n]\n\
        [--operations ...] [--symmetries xyz]\n\n", name);
@@ -70,12 +83,18 @@ void print_usage(const char * name) {
 }
 
 CLArgumentList * process_arguments(int argc, const char * argv[]) {
+    CLArgumentList * spDefs = subproblem_default_arguments(argv[1]);
+    if (!spDefs) return NULL;
+    
     CLArgumentList * defaults = indexer_default_arguments();
+    cl_argument_list_add_all(defaults, spDefs);
+    cl_argument_list_free(spDefs);
+    
     int failIndex;
-    CLArgumentList * result = cl_parse_arguments(argv, argc, defaults, &failIndex);
+    CLArgumentList * result = cl_parse_arguments(&argv[3], argc - 3, defaults, &failIndex);
     cl_argument_list_free(defaults);
     if (!result) {
-        fprintf(stderr, "error: invalid argument near `%s`\n", argv[failIndex]);
+        fprintf(stderr, "error: invalid argument near `%s`\n", argv[3 + failIndex]);
     }
     return result;
 }

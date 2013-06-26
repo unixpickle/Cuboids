@@ -117,8 +117,6 @@ int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid
         }
     }
     
-    printf("values %d %d %d.\n", angleValues[0], angleValues[1], angleValues[2]);
-    
     int maxValue = 0;
     for (i = 0; i < angleCount; i++) {
         if (angleValues[i] > maxValue) {

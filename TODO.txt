@@ -2,4 +2,4 @@ TODO:
 
 - in cuboid_copy_from_stickermap, calculate the edgeIndex
 - generate save filename better and check if it exists
-- cache the currentDepth in the indexer for increased efficiency
+- figure out what happened that one time with a corrupted index

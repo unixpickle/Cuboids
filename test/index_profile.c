@@ -7,6 +7,7 @@ void recursive_count(DataListNode * node, uint64_t * counts);
 int main(int argc, const char * argv[]) {
     if (argc != 5) {
         fprintf(stderr, "Usage: %s <index file> <x> <y> <z>\n", argv[0]);
+        return 1;
     }
     
     CuboidDimensions dims;
