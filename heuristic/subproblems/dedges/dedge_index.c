@@ -42,6 +42,10 @@ int dedge_index_load(HSParameters params, FILE * fp, void ** userData) {
         free(data);
         return 0;
     }
+    if (!dedge_index_supports_dimensions(data, params.symmetries.dims)) {
+        free(data);
+        return 0;
+    }
     *userData = data;
     return 1;
 }

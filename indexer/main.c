@@ -84,7 +84,10 @@ void print_usage(const char * name) {
 
 CLArgumentList * process_arguments(int argc, const char * argv[]) {
     CLArgumentList * spDefs = subproblem_default_arguments(argv[1]);
-    if (!spDefs) return NULL;
+    if (!spDefs) {
+        fprintf(stderr, "Error: invalid indexer `%s`.\n", argv[1]);
+        return NULL;
+    }
     
     CLArgumentList * defaults = indexer_default_arguments();
     cl_argument_list_add_all(defaults, spDefs);

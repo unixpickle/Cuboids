@@ -4,6 +4,7 @@
 #include "subproblems/corners/corner_index.h"
 #include "subproblems/eo/eo_index.h"
 #include "subproblems/dedges/dedge_index.h"
+#include "subproblems/omnia/omnia_index.h"
 
 const static HSubproblem HSubproblemTable[] = {
     {
@@ -44,6 +45,19 @@ const static HSubproblem HSubproblemTable[] = {
         dedge_index_angles_are_equivalent,
         dedge_index_get_data,
         dedge_index_completed
+    },
+    {
+        "omnia",
+        omnia_index_default_arguments,
+        omnia_index_initialize,
+        omnia_index_load,
+        omnia_index_save,
+        omnia_index_supports_dimensions,
+        omnia_index_data_size,
+        omnia_index_angle_count,
+        omnia_index_angles_are_equivalent,
+        omnia_index_get_data,
+        omnia_index_completed
     }
 };
 
