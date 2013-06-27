@@ -5,6 +5,7 @@
 #include "subproblems/eo/eo_index.h"
 #include "subproblems/dedges/dedge_index.h"
 #include "subproblems/omnia/omnia_index.h"
+#include "subproblems/centers/center_index.h"
 
 const static HSubproblem HSubproblemTable[] = {
     {
@@ -58,6 +59,19 @@ const static HSubproblem HSubproblemTable[] = {
         omnia_index_angles_are_equivalent,
         omnia_index_get_data,
         omnia_index_completed
+    },
+    {
+        "centers",
+        center_index_default_arguments,
+        center_index_initialize,
+        center_index_load,
+        center_index_save,
+        center_index_supports_dimensions,
+        center_index_data_size,
+        center_index_angle_count,
+        center_index_angles_are_equivalent,
+        center_index_get_data,
+        center_index_completed
     }
 };
 
