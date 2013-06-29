@@ -6,6 +6,7 @@
 #include "subproblems/dedges/dedge_index.h"
 #include "subproblems/omnia/omnia_index.h"
 #include "subproblems/centers/center_index.h"
+#include "subproblems/cco/cco_index.h"
 
 const static HSubproblem HSubproblemTable[] = {
     {
@@ -72,6 +73,19 @@ const static HSubproblem HSubproblemTable[] = {
         center_index_angles_are_equivalent,
         center_index_get_data,
         center_index_completed
+    },
+    {
+        "cco",
+        cco_index_default_arguments,
+        cco_index_initialize,
+        cco_index_load,
+        cco_index_save,
+        cco_index_supports_dimensions,
+        cco_index_data_size,
+        cco_index_angle_count,
+        cco_index_angles_are_equivalent,
+        cco_index_get_data,
+        cco_index_completed
     }
 };
 
