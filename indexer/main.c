@@ -10,6 +10,7 @@ static CSSearchContext * searchContext;
 static pthread_mutex_t globalMutex = PTHREAD_MUTEX_INITIALIZER;
 static int currentDepth = 0;
 static volatile long long nodesAdded = 0;
+static volatile long long nodesPruned = 0;
 static const char * fileName;
 
 CLArgumentList * subproblem_default_arguments(const char * spName);
@@ -151,9 +152,12 @@ CSCallbacks generate_callbacks() {
 void indexer_handle_progress(void * data) {
     pthread_mutex_lock(&globalMutex);
     long long value = __sync_fetch_and_or(&nodesAdded, 0);
-    printf("Found %lld sequences [depth %d, %d cosets, %d angles].\n", 
-           value, currentDepth, heuristicIndex->heuristic->cosetCount,
-           heuristicIndex->heuristic->angles->numDistinct);
+    long long pruned = __sync_fetch_and_or(&nodesPruned, 0);
+    printf("Found %lld, pruned %lld [depth=%d, cosets=%d, angles=%d, syms=%d, data_cosets=%d].\n", 
+           value, pruned, currentDepth, heuristicIndex->heuristic->cosetCount,
+           heuristicIndex->heuristic->angles->numDistinct,
+           rotation_group_count(heuristicIndex->heuristic->dataSymmetries),
+           rotation_cosets_count(heuristicIndex->heuristic->dataCosets));
     pthread_mutex_unlock(&globalMutex);
 }
 
@@ -177,6 +181,10 @@ int indexer_accepts_cuboid(void * data, const Cuboid * cuboid, Cuboid * cache, i
                                             cuboid, cache);
     if (arguments.threadCount > 1) {
         pthread_mutex_unlock(&globalMutex);
+    }
+    
+    if (!flag) {
+        __sync_add_and_fetch(&nodesPruned, 1);
     }
 
     return flag;

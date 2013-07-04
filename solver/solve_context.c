@@ -69,10 +69,10 @@ void sc_save(SolveContext * context, CSSearchState * state, const char * fileNam
     fwrite(&multipleFlag, 1, 1, fp);
     
     save_cuboid_search(state, fp);
-    context->solver.save(context->userData, fp);
-    
     save_heuristic_list(context->searchParameters.heuristics, fp);
     
+    context->solver.save(context->userData, fp);
+        
     fclose(fp);
     
     printf("Saved to %s.\n", fileName);

@@ -16,10 +16,10 @@ HeuristicIndex * heuristic_index_create(CLArgumentList * args, IndexerArguments 
     int nodeDepth = dataSize < shardDepth ? dataSize : shardDepth;
     
     // generate cosets
-    RotationGroup * symmetries = heuristic->symmetries;
     RotationBasis basis = rotation_basis_standard(heuristic->params.symmetries.dims);
+    RotationGroup * subgroup = rotation_group_create_basis(heuristic->params.symmetries);
     RotationGroup * group = rotation_group_create_basis(basis);
-    RotationCosets * cosets = rotation_cosets_create(group, symmetries);
+    RotationCosets * cosets = rotation_cosets_create(group, subgroup);
     
     int cosetCount = rotation_cosets_count(cosets);
     Cuboid ** inverseTriggers = (Cuboid **)malloc(sizeof(void *) * cosetCount);
@@ -35,6 +35,7 @@ HeuristicIndex * heuristic_index_create(CLArgumentList * args, IndexerArguments 
     
     rotation_group_release(group);
     rotation_cosets_release(cosets);
+    rotation_group_release(subgroup);
     
     HeuristicIndex * index = (HeuristicIndex *)malloc(sizeof(HeuristicIndex));
     index->heuristic = heuristic;
@@ -58,11 +59,12 @@ int heuristic_index_accepts_node(HeuristicIndex * index, int depth, int idaDepth
     // found a shorter path to a Cuboid than previously.
     cuboid_multiply(cache, cb, index->invTriggers[0]);
     uint8_t * indexData = (uint8_t *)malloc(heuristic_data_size(index->heuristic));
+    Cuboid * temp = cuboid_copy(cb);
     int i, numAngles = index->heuristic->angles->numDistinct;
     int accepts = 0;
     for (i = 0; i < numAngles; i++) {
         int angle = index->heuristic->angles->distinct[i];
-        heuristic_get_data(index->heuristic, cache, angle, indexData);
+        heuristic_get_data(index->heuristic, cache, temp, angle, indexData);
         DataList * dataList = index->heuristic->cosets[0];
         DataListNode * base = data_list_find_base(dataList, indexData, 0);
         if (!base) {
@@ -90,6 +92,7 @@ int heuristic_index_accepts_node(HeuristicIndex * index, int depth, int idaDepth
         accepts = 1;
     }
     free(indexData);
+    cuboid_free(temp);
     return accepts;
 }
 
@@ -99,19 +102,22 @@ int heuristic_index_add_node(HeuristicIndex * index, const Cuboid * cb, Cuboid *
     uint8_t * data = (uint8_t *)malloc(heuristic_data_size(index->heuristic));
     int i, j, cosetCount = index->heuristic->cosetCount;
     int addedSomething = 0;
+    Cuboid * temp = cuboid_copy(cb);
+    
     for (i = 0; i < cosetCount; i++) {
         DataList * coset = index->heuristic->cosets[i];
         Cuboid * rot = index->invTriggers[i];
         cuboid_multiply(cache, cb, rot); // cache now contains our coset cube
         for (j = 0; j < index->heuristic->angles->numDistinct; j++) {
             int angle = index->heuristic->angles->distinct[j];
-            heuristic_get_data(index->heuristic, cache, angle, data);
+            heuristic_get_data(index->heuristic, cache, temp, angle, data);
             if (_data_list_append(coset, data, headerData)) {
                 addedSomething = 1;
             }
         }
     }
     free(data);
+    cuboid_free(temp);
     return addedSomething;
 }
 

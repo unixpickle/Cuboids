@@ -7,6 +7,7 @@
 #include "subproblems/omnia/omnia_index.h"
 #include "subproblems/centers/center_index.h"
 #include "subproblems/cco/cco_index.h"
+#include "subproblems/dedgepair/dedgepair_index.h"
 
 const static HSubproblem HSubproblemTable[] = {
     {
@@ -20,7 +21,8 @@ const static HSubproblem HSubproblemTable[] = {
         corner_index_angle_count,
         corner_index_angles_are_equivalent,
         corner_index_get_data,
-        corner_index_completed
+        corner_index_completed,
+        NULL
     },
     {
         "eo",
@@ -33,7 +35,8 @@ const static HSubproblem HSubproblemTable[] = {
         eo_index_angle_count,
         eo_index_angles_are_equivalent,
         eo_index_get_data,
-        eo_index_completed
+        eo_index_completed,
+        NULL
     },
     {
         "dedges",
@@ -46,7 +49,8 @@ const static HSubproblem HSubproblemTable[] = {
         dedge_index_angle_count,
         dedge_index_angles_are_equivalent,
         dedge_index_get_data,
-        dedge_index_completed
+        dedge_index_completed,
+        NULL
     },
     {
         "omnia",
@@ -59,7 +63,8 @@ const static HSubproblem HSubproblemTable[] = {
         omnia_index_angle_count,
         omnia_index_angles_are_equivalent,
         omnia_index_get_data,
-        omnia_index_completed
+        omnia_index_completed,
+        NULL
     },
     {
         "centers",
@@ -72,7 +77,8 @@ const static HSubproblem HSubproblemTable[] = {
         center_index_angle_count,
         center_index_angles_are_equivalent,
         center_index_get_data,
-        center_index_completed
+        center_index_completed,
+        NULL
     },
     {
         "cco",
@@ -85,7 +91,22 @@ const static HSubproblem HSubproblemTable[] = {
         cco_index_angle_count,
         cco_index_angles_are_equivalent,
         cco_index_get_data,
-        cco_index_completed
+        cco_index_completed,
+        NULL
+    },
+    {
+        "dedgepair",
+        dedgepair_index_default_arguments,
+        dedgepair_index_initialize,
+        dedgepair_index_load,
+        dedgepair_index_save,
+        dedgepair_index_supports_dimensions,
+        dedgepair_index_data_size,
+        dedgepair_index_angle_count,
+        dedgepair_index_angles_are_equivalent,
+        dedgepair_index_get_data,
+        dedgepair_index_completed,
+        dedgepair_index_data_symmetries
     }
 };
 

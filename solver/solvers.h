@@ -10,6 +10,7 @@
 
 #include "standardpl/standardpl.h"
 #include "eopl/eopl.h"
+#include "pairpl/pairpl.h"
 #include "arguments/search_args.h"
 #include "stickers/stickermap.h"
 
@@ -50,9 +51,18 @@ static const Solver SolverTable[] = {
          eopl_save,
          eopl_completed,
          eopl_is_goal
-      }
+      },
+      {
+          "pair", 0,
+          pairpl_default_arguments,
+          pairpl_run,
+          pairpl_resume,
+          pairpl_save,
+          pairpl_completed,
+          pairpl_is_goal
+       }
 };
 
-static const int SolverTableCount = 2;
+static const int SolverTableCount = 3;
 
 #endif

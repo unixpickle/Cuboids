@@ -57,6 +57,8 @@ typedef struct {
     
     /* called to indicate that the heuristic is no longer needed */
     void (*completed)(void * userData);
+    
+    RotationBasis (*data_symmetries)(void * userData);
 } HSubproblem;
 
 #endif

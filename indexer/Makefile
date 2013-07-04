@@ -1,10 +1,10 @@
 SOURCES=indexer_arguments.c heuristic_index.c
 
 indexer: resources
-	gcc main.c $(wildcard ../*/build/*.o) -I../ -lpthread -o indexer
+	gcc main.c -O2 $(wildcard ../*/build/*.o) -I../ -lpthread -o indexer
 
 resources: build $(SOURCES)
-	gcc -c $(SOURCES) -I../
+	gcc -c -O2 $(SOURCES) -I../
 	mv *.o build/
 
 build:

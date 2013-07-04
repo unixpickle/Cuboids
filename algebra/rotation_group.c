@@ -25,9 +25,12 @@ RotationBasis rotation_basis_standard(CuboidDimensions dims) {
 
 int rotation_basis_is_subset(RotationBasis general, RotationBasis subset) {
     assert(cuboid_dimensions_equal(general.dims, subset.dims));
-    if (subset.xPower % general.xPower) return 0;
-    if (subset.yPower % general.yPower) return 0;
-    if (subset.zPower % general.zPower) return 0;
+    if (general.xPower != 0)
+        if (subset.xPower % general.xPower) return 0;    
+    if (general.yPower != 0)
+        if (subset.yPower % general.yPower) return 0;
+    if (general.zPower != 0)
+        if (subset.zPower % general.zPower) return 0;
     return 1;
 }
 

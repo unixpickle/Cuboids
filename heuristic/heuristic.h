@@ -4,6 +4,7 @@
 #include "subproblem_table.h"
 #include "data_list.h"
 #include "heuristic_angles.h"
+#include "algebra/rotation_cosets.h"
 
 typedef struct {
     HSubproblem subproblem;
@@ -13,7 +14,8 @@ typedef struct {
     int cosetCount;
     DataList ** cosets;
     
-    RotationGroup * symmetries;
+    RotationGroup * dataSymmetries;
+    RotationCosets * dataCosets;
     HeuristicAngles * angles;
 } Heuristic;
 
@@ -26,7 +28,8 @@ void heuristic_free(Heuristic * heuristic);
 int heuristic_data_size(Heuristic * heuristic);
 void heuristic_add_coset(Heuristic * heuristic, DataList * coset);
 void heuristic_get_data(Heuristic * heuristic, const Cuboid * cuboid,
-                        int angle, uint8_t * dataOut);
+                        Cuboid * cache, int angle, uint8_t * dataOut);
+void heuristic_initialize_symmetries(Heuristic * heuristic);
 
 /* user-friendly functions */
                                 

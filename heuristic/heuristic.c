@@ -6,8 +6,8 @@ typedef struct {
 } HDataAddress;
 
 static int _heuristic_find_subproblem(const char * name, HSubproblem * sp);
-static void _generate_symmetry_data(Heuristic * heuristic, HSParameters params);
 static int _heuristic_lookup(DataList * list, const uint8_t * data);
+static int _is_greater_than(const uint8_t * buff1, const uint8_t * buff2, int len);
 
 Heuristic * heuristic_create(HSParameters params, CLArgumentList * args, const char * spName) {
     HSubproblem subproblem;
@@ -23,12 +23,13 @@ Heuristic * heuristic_create(HSParameters params, CLArgumentList * args, const c
     heuristic->subproblem = subproblem;
     heuristic->spUserData = userData;
     heuristic->params = params;
-    _generate_symmetry_data(heuristic, params);
+    heuristic_initialize_symmetries(heuristic);
     return heuristic;
 }
 
 void heuristic_free(Heuristic * heuristic) {
-    rotation_group_release(heuristic->symmetries);
+    rotation_group_release(heuristic->dataSymmetries);
+    rotation_cosets_release(heuristic->dataCosets);
     
     if (heuristic->cosets) {
         int i;
@@ -74,11 +75,63 @@ void heuristic_add_coset(Heuristic * heuristic, DataList * coset) {
 }
 
 void heuristic_get_data(Heuristic * heuristic, const Cuboid * cuboid,
-                        int angle, uint8_t * dataOut) {
-    heuristic->subproblem.get_data(heuristic->spUserData, cuboid, dataOut, angle);
-    if (heuristic->angles->numDistinct > 1) {
-        int saveAngle = heuristic->angles->saveAngles[angle];
-        dataOut[heuristic_data_size(heuristic) - 1] = saveAngle;
+                        Cuboid * cache, int angle, uint8_t * dataOut) {
+    // loop through each
+    assert(rotation_group_count(heuristic->dataSymmetries) == 1 || cache);
+    int i, dataSize;
+    dataSize = heuristic_data_size(heuristic);
+    uint8_t * tempData = (uint8_t *)malloc(dataSize);
+    bzero(tempData, dataSize);
+    bzero(dataOut, dataSize);
+    
+    for (i = 0; i < rotation_group_count(heuristic->dataSymmetries); i++) {
+        const Cuboid * useCuboid = cuboid;
+        if (rotation_group_count(heuristic->dataSymmetries) > 1) {
+            Cuboid * symmetry = rotation_group_get(heuristic->dataSymmetries, i);
+            cuboid_multiply(cache, symmetry, cuboid);
+            useCuboid = cache;
+        }
+        heuristic->subproblem.get_data(heuristic->spUserData, useCuboid, tempData, angle);
+        
+        if (heuristic->angles->numDistinct > 1) {
+            int saveAngle = heuristic->angles->saveAngles[angle];
+            tempData[heuristic_data_size(heuristic) - 1] = saveAngle;
+        }
+        if (_is_greater_than(tempData, dataOut, dataSize)) {
+            memcpy(dataOut, tempData, dataSize);
+        }
+    }
+    free(tempData);
+}
+
+void heuristic_initialize_symmetries(Heuristic * heuristic) {
+    assert(!heuristic->dataCosets);
+    assert(!heuristic->dataSymmetries);
+    
+    RotationBasis symmetries = heuristic->params.symmetries;
+    RotationGroup * fullSymmetries = rotation_group_create_basis(symmetries);
+    RotationGroup * subSymmetries = NULL;
+    
+    if (heuristic->subproblem.data_symmetries) {
+        RotationBasis dataBasis;
+        void * data = heuristic->spUserData;
+        
+        dataBasis = heuristic->subproblem.data_symmetries(data);
+        assert(rotation_basis_is_subset(symmetries, dataBasis));
+        
+        subSymmetries = rotation_group_create_basis(dataBasis);
+    } else {
+        RotationBasis zeroBasis = {symmetries.dims, 0, 0, 0};
+        subSymmetries = rotation_group_create_basis(zeroBasis);
+    }
+    
+    heuristic->dataCosets = rotation_cosets_create_right(fullSymmetries, subSymmetries);
+    heuristic->dataSymmetries = subSymmetries;
+    rotation_group_release(fullSymmetries);
+    
+    if (!heuristic->angles) {
+        heuristic->angles = heuristic_angles_for_subproblem(heuristic->subproblem,
+                                                            heuristic->spUserData);
     }
 }
 
@@ -100,15 +153,20 @@ int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid
         angleValues[i] = heuristic->params.maxDepth + 1;
     }
     
-    for (i = 0; i < rotation_group_count(heuristic->symmetries); i++) {
-        Cuboid * symmetry = rotation_group_get(heuristic->symmetries, i);
+    Cuboid * extraTemp = NULL;
+    if (rotation_group_count(heuristic->dataSymmetries) > 1) {
+        extraTemp = cuboid_create(cuboid->dimensions);
+    }
+    
+    for (i = 0; i < rotation_cosets_count(heuristic->dataCosets); i++) {
+        Cuboid * symmetry = rotation_cosets_get_trigger(heuristic->dataCosets, i);
         cuboid_multiply(scratchpad, symmetry, cuboid);
         for (cosetIdx = 0; cosetIdx < heuristic->cosetCount; cosetIdx++) {
             DataList * coset = heuristic->cosets[cosetIdx];
             assert(coset->dataSize == dataSize);
             assert(coset->headerLen > 0);
             for (angle = 0; angle < angleCount; angle++) {
-                heuristic_get_data(heuristic, scratchpad, angle, heuristicData);
+                heuristic_get_data(heuristic, scratchpad, extraTemp, angle, heuristicData);
                 int thisValue = _heuristic_lookup(coset, heuristicData);
                 if (thisValue < angleValues[angle] && thisValue >= 0) {
                     angleValues[angle] = thisValue;
@@ -116,6 +174,7 @@ int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid
             }
         }
     }
+    if (extraTemp) cuboid_free(extraTemp);
     
     int maxValue = 0;
     for (i = 0; i < angleCount; i++) {
@@ -146,13 +205,6 @@ static int _heuristic_find_subproblem(const char * name, HSubproblem * sp) {
     return 0;
 }
 
-static void _generate_symmetry_data(Heuristic * heuristic, HSParameters params) {
-    RotationBasis symmetries = params.symmetries;
-    heuristic->symmetries = rotation_group_create_basis(symmetries);
-    heuristic->angles = heuristic_angles_for_subproblem(heuristic->subproblem,
-                                                        heuristic->spUserData);
-}
-
 static int _heuristic_lookup(DataList * list, const uint8_t * data) {
     DataListNode * base = data_list_find_base(list, data, 0);
     if (!base) return -1;
@@ -161,4 +213,13 @@ static int _heuristic_lookup(DataList * list, const uint8_t * data) {
         return -1;
     }
     return header[0];
+}
+
+static int _is_greater_than(const uint8_t * buff1, const uint8_t * buff2, int len) {
+    int i;
+    for (i = 0; i < len; i++) {
+        if (buff1[i] > buff2[i]) return 1;
+        if (buff1[i] < buff2[i]) return 0;
+    }
+    return 0;
 }

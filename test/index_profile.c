@@ -21,7 +21,9 @@ int main(int argc, const char * argv[]) {
         return 1;
     }
     
-    printf("%d symmetries, %d cosets\n", rotation_group_count(h->symmetries),
+    printf("%d data symmetries, %d data cosets, %d moveset cosets\n", 
+        rotation_group_count(h->dataSymmetries),
+        rotation_cosets_count(h->dataCosets),
         h->cosetCount);
         
     find_move_counts(h->cosets[0]);

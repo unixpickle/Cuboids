@@ -11,7 +11,6 @@ static int _load_heuristic_parameters(FILE * fp, HSParameters * params);
 static int _load_cosets(Heuristic * heuristic, FILE * fp);
 static HeuristicAngles * _load_heuristic_angles(FILE * fp);
 static int _initialize_subproblem(Heuristic * heuristic, FILE * fp);
-static void _generate_symmetries(Heuristic * heuristic);
 
 void save_heuristic(Heuristic * heuristic, FILE * fp) {
     save_string(heuristic->subproblem.name, fp);
@@ -60,7 +59,7 @@ Heuristic * load_heuristic(FILE * fp, CuboidDimensions newDims) {
         return NULL;
     }
     
-    _generate_symmetries(heuristic);
+    heuristic_initialize_symmetries(heuristic);
     return heuristic;
 }
 
@@ -251,9 +250,4 @@ static int _initialize_subproblem(Heuristic * heuristic, FILE * fp) {
 #endif
     
     return 1;
-}
-
-static void _generate_symmetries(Heuristic * heuristic) {
-    RotationBasis basis = heuristic->params.symmetries;
-    heuristic->symmetries = rotation_group_create_basis(basis);
 }

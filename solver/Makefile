@@ -1,4 +1,4 @@
-SOLVERS=standardpl eopl
+SOLVERS=standardpl eopl pairpl
 SOLVERS_BUILD=standardpl/build eopl/build
 
 solver: solvers
