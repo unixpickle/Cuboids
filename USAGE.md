@@ -3,7 +3,7 @@ Entering a cuboid
 
 All solvers in this project with prompt you to enter a scramble. This process can be confusing to newcomers, but is quite standardized and straight forward.
 
-cuboid entry hinges completely on stickers. A number 1-6 is assigned to each color. It is my suggestion that you use the following color scheme: 1 = white, 2 = yellow, 3 = blue, 4 = green, 5 = red, 6 = orange. Alternatively, let 1 = front, 2 = back, 3 = up, 4 = down, 5 = right, 6 = left.
+Cuboid entry hinges completely on stickers. A number 1-6 is assigned to each color. It is my suggestion that you use the following color scheme: 1 = white, 2 = yellow, 3 = blue, 4 = green, 5 = red, 6 = orange. Alternatively, let 1 = front, 2 = back, 3 = up, 4 = down, 5 = right, 6 = left.
 
 The solver's goal is to make the front side all 1, back side all 2, etc. However, the solver applies all dimension-invarient rotations to the cube to check for a goal state. For this reason, entering an even cube such as a 4x4x4 is quite arbitrary: the resulting cube may be any of the 24 rotations applied to the standard 1 front, 3 up color scheme (i.e. 3 front 2 up).
 
