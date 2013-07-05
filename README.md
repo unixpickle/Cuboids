@@ -26,8 +26,6 @@ General Todos
 
 Here is my current to-do list:
 
- * Generally reorganize the indexer to be cleaner, neater, and more robust
- * Create a body of heuristic subproblems which will hopefully make it a cinch to solve big cubes
  * Develop more solvers for various reduction tasks on big cubes and cuboids
  * Implement a small suite of programs for manipulating algorithms (i.e. rotating them, taking inverses, etc.)
  * *(Potentially)* a program which can identify impossible algorithms on a given shapeshifting cuboid and which allows for algorithms to be filtered accordingly.
