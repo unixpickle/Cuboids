@@ -1,4 +1,4 @@
-#import "cuboid_center_turns.h"
+#include "cuboid_center_turns.h"
 
 void cuboid_center_dimensions(CuboidDimensions dim, int face, int * w, int * h) {
     if (face == 1 || face == 2) {

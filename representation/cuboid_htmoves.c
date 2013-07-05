@@ -20,7 +20,7 @@ Cuboid * cuboid_half_face_turn(CuboidDimensions dims, CuboidMovesAxis axis, int 
 
 Cuboid * cuboid_half_slice(CuboidDimensions dims, CuboidMovesAxis axis, int layer) {
     // confirm that such a slice is possible
-    int edgeSize;
+    int edgeSize = 0;
     if (axis == CuboidMovesAxisX) edgeSize = dims.x - 2;
     if (axis == CuboidMovesAxisY) edgeSize = dims.y - 2;
     if (axis == CuboidMovesAxisZ) edgeSize = dims.z - 2;

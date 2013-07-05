@@ -41,7 +41,7 @@ Cuboid * cuboid_quarter_slice(CuboidDimensions dimensions,
                                       CuboidMovesAxis axis,
                                       int layer) {
     assert(cuboid_validate_quarter_turn(dimensions, axis));
-    int edgeSize;
+    int edgeSize = 0;
     if (axis == CuboidMovesAxisX) edgeSize = dimensions.x - 2;
     if (axis == CuboidMovesAxisY) edgeSize = dimensions.y - 2;
     if (axis == CuboidMovesAxisZ) edgeSize = dimensions.z - 2;
