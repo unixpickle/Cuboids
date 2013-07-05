@@ -25,8 +25,13 @@ int main(int argc, const char * argv[]) {
         rotation_group_count(h->dataSymmetries),
         rotation_cosets_count(h->dataCosets),
         h->cosetCount);
-        
-    find_move_counts(h->cosets[0]);
+    
+    int i;
+    for (i = 0; i < h->cosetCount; i++) {
+        printf("Distribution for coset %d:\n", i);
+        find_move_counts(h->cosets[i]);
+    }
+    
     heuristic_free(h);
     
     return 0;

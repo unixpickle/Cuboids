@@ -16,6 +16,7 @@
 
 typedef struct {
     const char * name;
+    const char * description;
     int cacheCuboid;
     
     // ** lifecycle **
@@ -35,7 +36,7 @@ typedef struct {
 
 static const Solver SolverTable[] = {
     {
-        "standard", 0,
+        "standard", "the standard sticker based cuboid solver", 0,
         standardpl_default_arguments,
         standardpl_run,
         standardpl_resume,
@@ -44,7 +45,7 @@ static const Solver SolverTable[] = {
         standardpl_is_goal
      },
      {
-         "eo", 1,
+         "eo", "solves the edge orientation along one axis", 1,
          eopl_default_arguments,
          eopl_run,
          eopl_resume,
@@ -53,7 +54,7 @@ static const Solver SolverTable[] = {
          eopl_is_goal
       },
       {
-          "pair", 0,
+          "pair", "pairs the edges of a cuboid", 0,
           pairpl_default_arguments,
           pairpl_run,
           pairpl_resume,

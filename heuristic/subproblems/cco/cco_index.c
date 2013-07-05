@@ -87,3 +87,13 @@ void cco_index_completed(void * userData) {
     ceo_context_free(context->ceoContext);
     free(context);
 }
+
+RotationBasis cco_index_data_symmetries(void * userData) {
+    CCOContext * generalContext = (CCOContext *)userData;
+    RotationBasis sym = generalContext->coContext->symmetries;
+    RotationBasis basis = {sym.dims, 2, 2, 2};
+    if (sym.xPower == 0) basis.xPower = 0;
+    if (sym.yPower == 0) basis.yPower = 0;
+    if (sym.zPower == 0) basis.zPower = 0;
+    return basis;
+}

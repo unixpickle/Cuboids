@@ -21,3 +21,4 @@ int cco_index_angle_count(void * userData);
 int cco_index_angles_are_equivalent(void * userData, int a1, int a2);
 void cco_index_get_data(void * userData, const Cuboid * cb, uint8_t * out, int angle);
 void cco_index_completed(void * userData);
+RotationBasis cco_index_data_symmetries(void * userData);

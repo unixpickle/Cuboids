@@ -14,3 +14,4 @@ int eo_index_angle_count(void * userData);
 int eo_index_angles_are_equivalent(void * userData, int a1, int a2);
 void eo_index_get_data(void * userData, const Cuboid * cb, uint8_t * out, int angle);
 void eo_index_completed(void * userData);
+RotationBasis eo_index_data_symmetries(void * userData);

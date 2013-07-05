@@ -67,3 +67,13 @@ void eo_index_completed(void * userData) {
     EOContext * context = (EOContext *)userData;
     eo_context_free(context);
 }
+
+RotationBasis eo_index_data_symmetries(void * userData) {
+    EOContext * context = (EOContext *)userData;
+    RotationBasis basis = {context->symmetries.dims, 2, 2, 2};
+    if (context->symmetries.xPower == 0) basis.xPower = 0;
+    if (context->symmetries.yPower == 0) basis.yPower = 0;
+    if (context->symmetries.zPower == 0) basis.zPower = 0;
+    return basis;
+    
+}

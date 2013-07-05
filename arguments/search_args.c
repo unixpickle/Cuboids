@@ -84,6 +84,19 @@ void cl_sa_remove_all(CLArgumentList * args) {
     cl_argument_list_free(defaults);
 }
 
+void cl_sa_print_usage(CLArgumentList * defArgs) {
+    int j;
+    for (j = 0; j < cl_argument_list_count(defArgs); j++) {
+        CLArgument * arg = cl_argument_list_get(defArgs, j);
+        printf("%s--%s", j == 0 ? "" : " ", arg->name);
+        if (arg->type == CLArgumentTypeString) {
+            printf(" <str>");
+        } else if (arg->type == CLArgumentTypeInteger) {
+            printf("=<num>");
+        }
+    }
+}
+
 /**************
  * Processing *
  **************/

@@ -16,6 +16,7 @@ static const char * fileName;
 CLArgumentList * subproblem_default_arguments(const char * spName);
 
 void print_usage(const char * name);
+void print_index_usage(const char * indexType);
 CLArgumentList * process_arguments(int argc, const char * argv[]);
 
 int generate_heuristic(const char * name, CLArgumentList * args);
@@ -37,6 +38,16 @@ int main(int argc, const char * argv[]) {
         print_usage(argv[0]);
         return 1;
     }
+    
+    if (strcmp(argv[1], "help") == 0) {
+        if (argc != 3) {
+            fprintf(stderr, "Error: help takes exactly one argument\n");
+            return 1;
+        }
+        print_index_usage(argv[2]);
+        return;
+    }
+    
     fileName = argv[2];
     
     IndexerArguments args;
@@ -78,9 +89,35 @@ CLArgumentList * subproblem_default_arguments(const char * spName) {
 }
 
 void print_usage(const char * name) {
-    fprintf(stderr, "Usage: %s <index type> <output> [--maxdepth=n] [--threads=n]\n\
-       [--operations ...] [--symmetries xyz]\n\n", name);
-    fflush(stderr);
+    printf("Usage: [help <type> | %s <index type> <output> options]\n", name);
+    puts("Options:");
+    puts("--maxdepth=n      The maximum search depth [8]");
+    puts("--threads=n       The number of threads for the search [1]");
+    puts("--operations ...  The moves to make in indexing");
+    puts("--symmetries xyz  The rotational symmetries of the moveset [111]");
+    puts("--sharddepth=n    The optional shard table depth [3]");
+    puts("\nAvailable solvers:\n");
+    int i, entryCount = sizeof(HSubproblemTable) / sizeof(HSubproblem);;
+    for (i = 0; i < entryCount; i++) {
+        HSubproblem s = HSubproblemTable[i];
+        printf("%12s - %s\n", s.name, s.description);
+    }
+    printf("\n\n");
+}
+
+void print_index_usage(const char * indexType) {
+    int i, entryCount = sizeof(HSubproblemTable) / sizeof(HSubproblem);;
+    for (i = 0; i < entryCount; i++) {
+        HSubproblem s = HSubproblemTable[i];
+        if (strcmp(s.name, indexType)) continue;
+        printf("Usage: indexer %s <file> ", indexType);
+        CLArgumentList * defArgs = s.default_arguments();
+        cl_sa_print_usage(defArgs);
+        cl_argument_list_free(defArgs);
+        printf("\n");
+        return;
+    }
+    fprintf(stderr, "Error: index type `%s` does not exist.\n", indexType);
 }
 
 CLArgumentList * process_arguments(int argc, const char * argv[]) {

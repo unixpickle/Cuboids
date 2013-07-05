@@ -12,6 +12,7 @@ static int foundSolution = 0;
 
 void handle_interrupt(int dummy);
 void print_usage(const char * command);
+void print_solver_usage(const char * solver);
 
 int handle_resume(int argc, const char * argv[]);
 int handle_solver(int argc, const char * argv[]);
@@ -43,6 +44,12 @@ int main(int argc, const char * argv[]) {
     
     if (strcmp(argv[1], "resume") == 0) {
         return handle_resume(argc, argv);
+    } else if (strcmp(argv[1], "help") == 0) { 
+        if (argc != 3) {
+            fprintf(stderr, "Error: help takes exactly one argument\n");
+            return 1;
+        }
+        print_solver_usage(argv[2]);
     } else {
         return handle_solver(argc, argv);
     }
@@ -58,7 +65,7 @@ void handle_interrupt(int dummy) {
 }
 
 void print_usage(const char * command) {
-    printf("Usage: %s [<solver> <options> | resume <file.sav>]\n", command);
+    printf("Usage: %s [<solver> <options> | resume <file.sav> | help solver ]\n", command);
     puts("Options:");
     puts(" --multiple        find multiple solutions");
     puts(" --verbose         display periodic updates");
@@ -68,7 +75,30 @@ void print_usage(const char * command) {
     puts(" --operations <x>  the , separated operations to use");
     puts(" --dimensions <x>  the dimensions in XxYxZ format. [3x3x3]");
     puts(" --heuristic <x>   a heuristic database to use.");
+    puts("\nAvailable solvers:\n");
+    int i;
+    for (i = 0; i < SolverTableCount; i++) {
+        Solver s = SolverTable[i];
+        printf("%12s - %s\n", s.name, s.description);
+    }
     printf("\n\n");
+}
+
+void print_solver_usage(const char * solver) {
+    int i, j;
+    for (i = 0; i < SolverTableCount; i++) {
+        Solver s = SolverTable[i];
+        if (strcmp(s.name, solver) != 0) continue;
+        
+        printf("Usage: solver %s ", solver);
+        CLArgumentList * defArgs = s.default_arguments();
+        cl_sa_print_usage(defArgs);
+        cl_argument_list_free(defArgs);
+        printf("\n");
+        
+        return;
+    }
+    fprintf(stderr, "Error: solver `%s` does not exist.\n", solver);
 }
 
 /*********************************
