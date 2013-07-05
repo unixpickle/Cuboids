@@ -5,7 +5,7 @@ All solvers in this project with prompt you to enter a scramble. This process ca
 
 Cuboid entry hinges completely on stickers. A number 1-6 is assigned to each color. It is my suggestion that you use the following color scheme: 1 = white, 2 = yellow, 3 = blue, 4 = green, 5 = red, 6 = orange. Alternatively, let 1 = front, 2 = back, 3 = up, 4 = down, 5 = right, 6 = left.
 
-The solver's goal is to make the front side all 1, back side all 2, etc. However, the solver applies all dimension-invarient rotations to the cube to check for a goal state. For this reason, entering an even cube such as a 4x4x4 is quite arbitrary: the resulting cube may be any of the 24 rotations applied to the standard 1 front, 3 up color scheme (i.e. 3 front 2 up).
+The solver's goal is to make the front side all 1, back side all 2, etc. However, the solver applies all dimension-invariant rotations to the cube to check for a goal state. For this reason, entering an even cube such as a 4x4x4 is quite arbitrary: the resulting cube may be any of the 24 rotations applied to the standard 1 front, 3 up color scheme (i.e. 3 front 2 up).
 
 When entering a cube, you can pick any arbitrary rotation of the 1 front 3 up color scheme. For example, you could enter 2 for the top center and 3 for the front center (with 4 back, 5 right, 6 left, and 1 down). While this is nice for cubes, cuboid entry is more strict for rectangular cuboids. For example, you may wish to enter a 3x2x3. In this case, you can only choose 1, 2, 5, or 6 for the front sticker color, and the top/bottom must only contain 3 and 4 stickers since the cuboid can only be rotated with &lt;x2, y, z2&gt; (or `212`) in order to maintain its dimensions.
 
