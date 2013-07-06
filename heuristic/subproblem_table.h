@@ -8,6 +8,7 @@
 #include "subproblems/centers/center_index.h"
 #include "subproblems/cco/cco_index.h"
 #include "subproblems/dedgepair/dedgepair_index.h"
+#include "subproblems/centergroup/centergroup_index.h"
 
 const static HSubproblem HSubproblemTable[] = {
     {
@@ -107,6 +108,20 @@ const static HSubproblem HSubproblemTable[] = {
         dedgepair_index_get_data,
         dedgepair_index_completed,
         dedgepair_index_data_symmetries
+    },
+    {
+        "centergroup", "compact information about center grouping",
+        centergroup_index_default_arguments,
+        centergroup_index_initialize,
+        centergroup_index_load,
+        centergroup_index_save,
+        centergroup_index_supports_dimensions,
+        centergroup_index_data_size,
+        centergroup_index_angle_count,
+        centergroup_index_angles_are_equivalent,
+        centergroup_index_get_data,
+        centergroup_index_completed,
+        centergroup_index_data_symmetries
     }
 };
 
