@@ -44,7 +44,7 @@ void find_move_counts(DataList * list) {
     int i;
     for (i = 0; i < 256; i++) {
         if (counts[i] > 0) {
-            printf("%d - %llu\n", i, counts[i]);
+            printf("%d - %llu\n", i, (unsigned long long)counts[i]);
         }
     }
 }
