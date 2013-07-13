@@ -47,11 +47,11 @@ int load_uint16(uint16_t * out, FILE * fp) {
 
 int load_uint64(uint64_t * out, FILE * fp) {
     uint8_t bytes[8];
-    int i;
+    uint64_t i;
     if (fread(bytes, 1, 8, fp) != 8) return 0;
     uint64_t number = 0;
     for (i = 0; i < 8; i++) {
-        number |= bytes[i] << (8 * i);
+        number |= (uint64_t)bytes[i] << (8L * i);
     }
     *out = number;
     return 1;

@@ -172,7 +172,7 @@ void search_handle_progress(void * data) {
     if (!solveContext.searchParameters.verboseFlag) return;
     BSProgress progress = bs_context_progress(solveContext.searchContext->bsContext);
     int depth = bs_context_current_depth(solveContext.searchContext->bsContext);
-    printf("expanded %lld, pruned %lld, depth %d\n",
+    printf("expanded %llu, pruned %llu, depth %d\n",
            progress.nodesExpanded, progress.nodesPruned, depth);
 }
 
