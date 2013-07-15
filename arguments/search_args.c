@@ -192,6 +192,10 @@ static int _cl_sa_process_heuristics(CLArgumentList * args, CLSearchParameters *
         heuristic_list_add(list, heuristic, fileName);
     }
     
+    Cuboid * temp = cuboid_create(params->dimensions);
+    heuristic_list_prepare(list, temp);
+    cuboid_free(temp);
+    
     params->heuristics = list;
     return 1;
 }

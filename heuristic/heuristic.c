@@ -6,8 +6,6 @@ typedef struct {
 } HDataAddress;
 
 static int _heuristic_find_subproblem(const char * name, HSubproblem * sp);
-static int _heuristic_lookup(DataList * list, const uint8_t * data);
-static int _is_greater_than(const uint8_t * buff1, const uint8_t * buff2, int len);
 
 Heuristic * heuristic_create(HSParameters params, CLArgumentList * args, const char * spName) {
     HSubproblem subproblem;
@@ -91,17 +89,22 @@ void heuristic_get_data(Heuristic * heuristic, const Cuboid * cuboid,
             cuboid_multiply(cache, symmetry, cuboid);
             useCuboid = cache;
         }
-        heuristic->subproblem.get_data(heuristic->spUserData, useCuboid, tempData, angle);
-        
-        if (heuristic->angles->numDistinct > 1) {
-            int saveAngle = heuristic->angles->saveAngles[angle];
-            tempData[heuristic_data_size(heuristic) - 1] = saveAngle;
-        }
-        if (_is_greater_than(tempData, dataOut, dataSize)) {
+        heuristic_get_raw_data(heuristic, useCuboid, angle, tempData);
+        if (heuristic_data_is_gt(tempData, dataOut, dataSize)) {
             memcpy(dataOut, tempData, dataSize);
         }
     }
     free(tempData);
+}
+
+void heuristic_get_raw_data(Heuristic * heuristic, const Cuboid * cuboid,
+                            int angle, uint8_t * dataOut) {
+    heuristic->subproblem.get_data(heuristic->spUserData, cuboid, dataOut, angle);
+
+    if (heuristic->angles->numDistinct > 1) {
+        int saveAngle = heuristic->angles->saveAngles[angle];
+        dataOut[heuristic_data_size(heuristic) - 1] = saveAngle;
+    }
 }
 
 void heuristic_initialize_symmetries(Heuristic * heuristic) {
@@ -133,6 +136,15 @@ void heuristic_initialize_symmetries(Heuristic * heuristic) {
         heuristic->angles = heuristic_angles_for_subproblem(heuristic->subproblem,
                                                             heuristic->spUserData);
     }
+}
+
+int heuristic_data_is_gt(const uint8_t * d1, const uint8_t * d2, int len) {
+    int i;
+    for (i = 0; i < len; i++) {
+        if (d1[i] > d2[i]) return 1;
+        if (d1[i] < d2[i]) return 0;
+    }
+    return 0;
 }
 
 /***********
@@ -167,7 +179,7 @@ int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid
             assert(coset->headerLen > 0);
             for (angle = 0; angle < angleCount; angle++) {
                 heuristic_get_data(heuristic, scratchpad, extraTemp, angle, heuristicData);
-                int thisValue = _heuristic_lookup(coset, heuristicData);
+                int thisValue = heuristic_coset_pruning_value(coset, heuristicData);
                 if (thisValue < angleValues[angle] && thisValue >= 0) {
                     angleValues[angle] = thisValue;
                 }
@@ -188,6 +200,16 @@ int heuristic_pruning_value(Heuristic * heuristic, const Cuboid * cuboid, Cuboid
     return maxValue;
 }
 
+int heuristic_coset_pruning_value(DataList * list, const uint8_t * data) {
+    DataListNode * base = data_list_find_base(list, data, 0);
+    if (!base) return -1;
+    uint8_t * header;
+    if (!data_list_base_find(base, data, &header)) {
+        return -1;
+    }
+    return header[0];
+}
+
 /***********
  * Private *
  ***********/
@@ -205,21 +227,3 @@ static int _heuristic_find_subproblem(const char * name, HSubproblem * sp) {
     return 0;
 }
 
-static int _heuristic_lookup(DataList * list, const uint8_t * data) {
-    DataListNode * base = data_list_find_base(list, data, 0);
-    if (!base) return -1;
-    uint8_t * header;
-    if (!data_list_base_find(base, data, &header)) {
-        return -1;
-    }
-    return header[0];
-}
-
-static int _is_greater_than(const uint8_t * buff1, const uint8_t * buff2, int len) {
-    int i;
-    for (i = 0; i < len; i++) {
-        if (buff1[i] > buff2[i]) return 1;
-        if (buff1[i] < buff2[i]) return 0;
-    }
-    return 0;
-}

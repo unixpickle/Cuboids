@@ -5,7 +5,6 @@ static void _recursive_generate_basis(RotationGroup * group, Cuboid * soFar,
                                       Cuboid ** rotations, int count, int depth);
 static Cuboid * _create_rotation(CuboidDimensions dims, CuboidMovesAxis axis, int power);
 
-static int _cuboid_light_comparison(const Cuboid * c1, const Cuboid * c2);
 static int _rotation_group_closest_index(const RotationGroup * group, const Cuboid * c);
 
 RotationBasis rotation_basis_standard(CuboidDimensions dims) {
@@ -76,7 +75,7 @@ int rotation_group_contains(const RotationGroup * group, const Cuboid * cb) {
     int guess = _rotation_group_closest_index(group, cb);
     if (guess >= group->count) return 0;
     Cuboid * test = group->cuboids[guess];
-    if (_cuboid_light_comparison(test, cb) == 0) return 1;
+    if (cuboid_light_comparison(test, cb) == 0) return 1;
     return 0;
 }
 
@@ -94,7 +93,7 @@ void rotation_group_add(RotationGroup * group, Cuboid * cb) {
     int insertIndex = _rotation_group_closest_index(group, cb);
     if (insertIndex < group->count) {
         Cuboid * testCb = group->cuboids[insertIndex];
-        int result = _cuboid_light_comparison(cb, testCb);
+        int result = cuboid_light_comparison(cb, testCb);
         assert(result != 0);
         if (result > 0) {
             insertIndex++;
@@ -187,41 +186,12 @@ static Cuboid * _create_rotation(CuboidDimensions dims, CuboidMovesAxis axis, in
  * Private cuboid searching *
  ****************************/
 
-static int _cuboid_light_comparison(const Cuboid * c1, const Cuboid * c2) {
-    int i;
-    int edgeCount = cuboid_count_edges(c1);
-    int centerCount = cuboid_count_centers(c1);
-    for (i = 0; i < edgeCount; i++) {
-        CuboidEdge e1 = c1->edges[i];
-        CuboidEdge e2 = c2->edges[i];
-        if (e1.dedgeIndex < e2.dedgeIndex) return -1;
-        if (e1.dedgeIndex > e2.dedgeIndex) return 1;
-        if (e1.symmetry < e2.symmetry) return -1;
-        if (e1.symmetry > e2.symmetry) return 1;
-    }
-    for (i = 0; i < centerCount; i++) {
-        CuboidCenter ce1 = c1->centers[i];
-        CuboidCenter ce2 = c2->centers[i];
-        if (ce1.side < ce2.side) return -1;
-        if (ce1.side > ce2.side) return 1;
-    }
-    for (i = 0; i < 8; i++) {
-        CuboidCorner co1 = c1->corners[i];
-        CuboidCorner co2 = c2->corners[i];
-        if (co1.index < co2.index) return -1;
-        if (co1.index > co2.index) return 1;
-        if (co1.symmetry < co2.symmetry) return -1;
-        if (co1.symmetry > co2.symmetry) return 1;
-    }
-    return 0;
-}
-
 static int _rotation_group_closest_index(const RotationGroup * group, const Cuboid * c) {
     int low = -1, high = group->count;
     while (high - low > 1) {
         int test = (high + low) / 2;
         Cuboid * cb = group->cuboids[test];
-        int comparison = _cuboid_light_comparison(c, cb);
+        int comparison = cuboid_light_comparison(c, cb);
         if (comparison > 0) {
             low = test;
         } else if (comparison < 0) {

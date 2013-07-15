@@ -3,6 +3,7 @@
 
 #include "notation/cuboid.h"
 #include "algebra/power.h"
+#include "algebra/comparison.h"
 #include <assert.h>
 
 typedef struct {

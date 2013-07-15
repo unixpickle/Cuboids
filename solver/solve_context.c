@@ -206,7 +206,14 @@ static int _load_search_heuristics(SolveContext * context, FILE * fp) {
     CuboidDimensions dims = context->searchParameters.dimensions;
     HeuristicList * list = load_heuristic_list(fp, dims);
     context->searchParameters.heuristics = list;
-    return (list != NULL);
+    
+    if (!list) return 0;
+    
+    Cuboid * temp = cuboid_create(dims);
+    heuristic_list_prepare(list, temp);
+    cuboid_free(temp);
+    
+    return 1;
 }
 
 static void _copy_parameters_from_state(SolveContext * context, CSSearchState * state) {

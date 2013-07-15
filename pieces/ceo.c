@@ -5,7 +5,7 @@ static void _generate_ceo_data(const Cuboid * cuboid, uint8_t * out,
                                const uint16_t * map, uint8_t axis);
 
 uint8_t cuboid_center_orientation(int face, uint8_t axis) {
-    uint8_t axisFaces[3][2] = {{5, 6}, {3, 4}, {1, 2}};
+    const static uint8_t axisFaces[3][2] = {{5, 6}, {3, 4}, {1, 2}};
     return (face == axisFaces[axis][0] || face == axisFaces[axis][1]);
 }
 
