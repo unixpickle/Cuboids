@@ -133,6 +133,14 @@ static Cuboid * _base_cuboid_for_container(Algorithm * container, CuboidDimensio
         }
     }
     cuboid_free(temp);
+    
+    if (container->power % 2 == 0) {
+        // square it
+        temp = cuboid_copy(result);
+        cuboid_multiply_to(temp, result);
+        cuboid_free(temp);
+    }
+    
     return result;
 }
 
