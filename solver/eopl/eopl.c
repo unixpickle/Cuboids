@@ -102,10 +102,13 @@ static int _eo_are_centers_solved(const Cuboid * cb) {
     int face, i;
     for (face = 1; face <= 6; face++) {
         int count = cuboid_count_centers_for_face(cb, face);
+        int thisColor = -1;
         for (i = 0; i < count; i++) {
             int index = cuboid_center_index(cb, face, i);
             CuboidCenter c = cb->centers[index];
-            if (c.side != face) return 0;
+            if ((c.side - 1) / 2 != (face - 1) / 2) return 0;
+            if (thisColor < 0) thisColor = c.side;
+            else if (c.side != thisColor) return 0;
         }
     }
     return 1;
