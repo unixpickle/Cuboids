@@ -188,7 +188,7 @@ static CuboidMovesAxis _axis_for_cube_rotation(Algorithm * algo) {
 }
 
 static int _axis_side_length(CuboidDimensions dim, CuboidMovesAxis axis) {
-    assert(axis >= 0 && axis <= CuboidMovesAxisZ);
+    assert(axis <= CuboidMovesAxisZ);
     if (axis == CuboidMovesAxisX) return dim.x;
     if (axis == CuboidMovesAxisY) return dim.y;
     if (axis == CuboidMovesAxisZ) return dim.z;

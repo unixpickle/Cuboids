@@ -173,7 +173,7 @@ static void _recursive_generate_basis(RotationGroup * group, Cuboid * soFar,
 
 static Cuboid * _create_rotation(CuboidDimensions dims, CuboidMovesAxis axis, int power) {
     // who uses one letter variable names now, noobs?
-    assert(axis >= 0 && axis < 3);
+    assert(axis < 3);
     const char * axes = "xyz";
     Algorithm * a = algorithm_new_rotation(axes[axis]);
     a->power = power;
