@@ -43,7 +43,7 @@ AlgList * alg_list_parse(const char * buffer, CuboidDimensions dims) {
     // add each element separated by commas
     
     int i;
-    for (i = 0; i < strlen(buffer); i++) {
+    for (i = 0; i < (int)strlen(buffer); i++) {
         if (buffer[i] == ',' && strlen(tmpBuffer) > 0) {
             Algorithm * algo = algorithm_for_string(tmpBuffer);
             if (!algo) {

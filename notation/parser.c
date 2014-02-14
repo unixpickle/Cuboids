@@ -45,7 +45,7 @@ Algorithm * algorithm_for_string(const char * buffer) {
     int usedLen;
     Algorithm * a = _algo_read_nested_tokens(buffer, &usedLen);
     
-    if (usedLen != strlen(buffer)) {
+    if (usedLen != (int)strlen(buffer)) {
         if (a) algorithm_free(a);
         return NULL;
     }
@@ -58,7 +58,7 @@ Algorithm * algorithm_for_string(const char * buffer) {
 
 static int _token_num_prefix_len(const char * token) {
     int count = 0, i;
-    for (i = 0; i < strlen(token); i++) {
+    for (i = 0; i < (int)strlen(token); i++) {
         if (token[i] < '0' || token[i] > '9') {
             break;
         }
@@ -83,13 +83,13 @@ static int _token_algo_type(const char name) {
     const char * faces = "RULDFB";
     const char * rotations = "xyz";
     int i;
-    for (i = 0; i < strlen(slices); i++) {
+    for (i = 0; i < (int)strlen(slices); i++) {
         if (slices[i] == name) return AlgorithmTypeSlice;
     }
-    for (i = 0; i < strlen(faces); i++) {
+    for (i = 0; i < (int)strlen(faces); i++) {
         if (faces[i] == name) return AlgorithmTypeWideTurn;
     }
-    for (i = 0; i < strlen(rotations); i++) {
+    for (i = 0; i < (int)strlen(rotations); i++) {
         if (rotations[i] == name) return AlgorithmTypeRotation;
     }
     return -1;
@@ -205,10 +205,10 @@ static Algorithm * _token_parse_rotation(const char * token,
 
 static Algorithm * _algo_read_nested_tokens(const char * str, int * lenOut) {
     Algorithm * container = algorithm_new_container();
-    *lenOut = strlen(str);
+    *lenOut = (int)strlen(str);
     
     int i;
-    for (i = 0; i < strlen(str); i++) {
+    for (i = 0; i < (int)strlen(str); i++) {
         if (isspace(str[i])) continue;
         // handle recursion characters
         if (str[i] == '(') {
@@ -263,7 +263,7 @@ static Algorithm * _algo_read_next_token(const char * str, int * lenOut) {
 
 static int _algo_next_token_length(const char * str) {
     int i;
-    for (i = 0; i < strlen(str); i++) {
+    for (i = 0; i < (int)strlen(str); i++) {
         if (isspace(str[i])) return i;
         if (str[i] == ')') return i;
     }

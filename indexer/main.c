@@ -3,6 +3,7 @@
 #include "heuristic/heuristic_io.h"
 #include "search/cuboid.h"
 #include <stdio.h>
+#include <unistd.h>
 
 static HeuristicIndex * heuristicIndex = NULL;
 static IndexerArguments arguments;
@@ -45,7 +46,7 @@ int main(int argc, const char * argv[]) {
             return 1;
         }
         print_index_usage(argv[2]);
-        return;
+        return 1;
     }
     
     fileName = argv[2];

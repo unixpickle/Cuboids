@@ -47,7 +47,7 @@ static int _process_rotation_args(CLArgumentList * args, IndexerArguments * out)
     RotationBasis basis = rotation_basis_standard(out->symmetries.dims);
     if (index >= 0) {
         CLArgument * arg = cl_argument_list_get(args, index);
-        if (!_parse_rotation_axes(arg->contents.string.value, &out->symmetries)) {
+        if (!_parse_rotation_axes((const unsigned char *)arg->contents.string.value, &out->symmetries)) {
             return 0;
         }
         if (!rotation_basis_is_subset(basis, out->symmetries)) {
@@ -100,7 +100,7 @@ static int _process_operations(CLArgumentList * args, IndexerArguments * out) {
 }
 
 static int _parse_rotation_axes(const unsigned char * axes, RotationBasis * basis) {
-    if (strlen(axes) != 3) return 0;
+    if (strlen((const char *)axes) != 3) return 0;
     int exponents[3] = {0, 0, 0};
     int i;
     for (i = 0; i < 3; i++) {
