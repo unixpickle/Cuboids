@@ -21,7 +21,7 @@ typedef struct {
     uint8_t symmetry;
 } FaceMap;
 
-const static FaceMap FacesTable[] = {
+static const FaceMap FacesTable[] = {
     // L turn
     {
         {4, 3, 10, 9}, {9, 4, 3, 10},

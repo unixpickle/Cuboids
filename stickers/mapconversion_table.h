@@ -11,7 +11,7 @@ typedef struct {
     } sides[2];
 } DedgeMap;
 
-const static DedgeMap DedgesTable[] = {
+static const DedgeMap DedgesTable[] = {
     {{ // dedge 0
         {3, 2, 0}, // UF, y
         {1, 0, 0} // FU, z
@@ -70,7 +70,7 @@ typedef struct {
     } sides[3];
 } CornerMap;
 
-const static CornerMap CornersTable[] = {
+static const CornerMap CornersTable[] = {
     {{{6, 0, 1}, {4, 0, 1}, {2, 1, 1}}}, // (0, 0, 0)
     {{{6, 1, 1}, {4, 0, 0}, {1, 0, 1}}}, // (0, 0, 1)
     {{{6, 0, 0}, {3, 0, 0}, {2, 1, 0}}}, // (0, 1, 0)
@@ -81,7 +81,7 @@ const static CornerMap CornersTable[] = {
     {{{5, 0, 0}, {3, 1, 1}, {1, 1, 0}}} // (1, 1, 1)
 };
 
-const static uint8_t CornerPieces[8][3] = {
+static const uint8_t CornerPieces[8][3] = {
     {6,4,2}, // 000
     {6,4,1}, // 001
     {6,3,2}, // 010
@@ -92,7 +92,7 @@ const static uint8_t CornerPieces[8][3] = {
     {5,3,1}  // 111
 };
 
-const static uint8_t EdgePieces[12][3] = {
+static const uint8_t EdgePieces[12][3] = {
     {0,3,1},
     {5,0,1},
     {0,4,1},
